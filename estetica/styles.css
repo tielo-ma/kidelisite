@@ -1,0 +1,156 @@
+/* styles.css */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+header {
+  background-color: #333;
+  color: white;
+  padding: 10px 0;
+  text-align: center;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+nav ul li {
+  display: inline;
+  margin: 0 15px;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav ul li a:hover {
+  color: #f43630;
+  transition: color 1s ease;
+  border-bottom: 0.1rem solid;
+  padding-bottom: 0.5rem;
+  font-size: 1.5rem;
+}
+
+section {
+  padding: 20px;
+  text-align: center;
+}
+
+.servico {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-size: cover; /* Faz a imagem cobrir todo o contêiner */
+  background-position: center; /* Centraliza a imagem */
+  color: white; /* Cor do texto para contrastar com a imagem */
+  height: 250px; /* Altura fixa para o contêiner */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centraliza o conteúdo verticalmente */
+  align-items: center; /* Centraliza o conteúdo horizontalmente */
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.servico::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Overlay escuro para melhorar a legibilidade do texto */
+  z-index: 1;
+}
+
+.servico h3, .servico p {
+  position: relative;
+  z-index: 2; /* Coloca o texto na frente do overlay */
+}
+
+.servico img {
+  width: 100%; /* A imagem ocupa 100% da largura do contêiner */
+  max-width: 300px; /* Define um tamanho máximo para a imagem */
+  border-radius: 10px;
+  margin-bottom: 15px; /* Espaço entre a imagem e o texto */
+  transition: transform 0.3s ease;
+}
+
+.servico:hover {
+  transform: scale(1.05); /* Efeito de zoom ao passar o mouse */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Sombra ao passar o mouse */
+}
+
+.servico:hover img {
+  transform: scale(1.05); /* Efeito de zoom na imagem ao passar o mouse */
+}
+
+.galeria {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.galeria img {
+  width: 30%;
+  margin: 10px 0;
+  border-radius: 10px;
+  transition: transform 0.3s ease;
+}
+
+.galeria img:hover {
+  transform: scale(1.1);
+}
+
+.redes-sociais {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Espaçamento entre os ícones */
+  margin-top: 20px;
+}
+
+.redes-sociais a {
+  color: #333; /* Cor padrão dos ícones */
+  font-size: 32px; /* Tamanho dos ícones */
+  transition: color 1s ease; /* Transição suave para a mudança de cor */
+}
+
+.redes-sociais a:hover {
+  color: #f4a261; /* Cor ao passar o mouse (laranja) */
+}
+
+/* Cores personalizadas para cada rede social */
+.redes-sociais a[href*="facebook"]:hover {
+  color: #1877f2; /* Azul do Facebook */
+}
+
+.redes-sociais a[href*="instagram"]:hover {
+  color: #e4405f; /* Rosa do Instagram */
+}
+
+.redes-sociais a[href*="twitter"]:hover {
+  color: #1da1f2; /* Azul do Twitter */
+}
+
+.redes-sociais a[href*="whatsapp"]:hover {
+  color: #25d366; /* Verde do WhatsApp */
+}
+
+footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  position: relative;
+  width: 100%;
+  bottom: 0;
+}

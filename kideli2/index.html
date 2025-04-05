@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torta & Cia - Recriação</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header">
+        <div class="logo">
+            <img src="https://ogimg.infoglobo.com.br/in/22269593-ba4-81a/FT1086A/Logo-Kidelli.png" alt="Torta & Cia">
+        </div>
+        <nav class="menu">
+            <a href="#">Home</a>
+            <a href="#">Bolos</a>
+            <a href="#">Tortas Doces</a>
+            <a href="#">Tortas Salgadas</a>
+            <a href="#">Contato</a>
+        </nav>
+        <div class="carrinho">
+            <span>🛒</span>
+        </div>
+    </header>
+    <!-- Carrossel de Imagens -->
+<section class="carrossel">
+    <div class="slide fade">
+        <img src="https://receitatodahora.com.br/wp-content/uploads/2018/09/massa-de-torta-doce-2.jpg" alt="Torta de Morango">
+    </div>
+    <div class="slide fade">
+        <img src="https://p2.trrsf.com/image/fget/cf/774/0/images.terra.com/2021/01/27/52b647f3-54c6-491f-baed-ecba3eb5ec5d.jpg" alt="Bolo de Chocolate">
+    </div>
+    <div class="slide fade">
+        <img src="https://guiadacozinha.com.br/wp-content/uploads/2019/10/torta-de-limao-doce-de-leite.jpg" alt="Torta Salgada">
+    </div>
+    <!-- Botões de navegação -->
+    <a class="prev" onclick="mudarSlide(-1)">&#10094;</a>
+    <a class="next" onclick="mudarSlide(1)">&#10095;</a>
+</section>
+<!-- Pontos indicadores -->
+<div class="pontos" style="text-align:center">
+    <span class="ponto" onclick="slideAtual(1)"></span>
+    <span class="ponto" onclick="slideAtual(2)"></span>
+    <span class="ponto" onclick="slideAtual(3)"></span>
+</div>
+
+    <!-- Banner Principal -->
+    <section class="banner">
+        <img src="banner-tortaecia.jpg" alt="Tortas artesanais">
+    </section>
+
+    <!-- Categorias -->
+    <section class="categorias">
+        <h2>Nossas Delícias</h2>
+        <div class="categoria-item">
+            <img src="bolo-categoria.jpg" alt="Bolos">
+            <h3>Bolos</h3>
+        </div>
+        <!-- Repetir para outras categorias -->
+    </section>
+
+    <!-- Produtos -->
+    <section class="produtos">
+        <div class="produto">
+            <img src="torta-morango.jpg" alt="Torta de Morango">
+            <h3>Torta de Morango</h3>
+            <p class="preco">R$ 45,00</p>
+            <button>Comprar</button>
+        </div>
+        <!-- Repetir para outros produtos -->
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="footer">
+        <p>© 2024 Torta & Cia - Recriação para fins educacionais.</p>
+    </footer>
+
+    <script>
+        let slideIndex = 0;
+        const slides = document.getElementsByClassName("slide");
+        const pontos = document.getElementsByClassName("ponto");
+    
+        // Inicia o carrossel
+        mostrarSlides();
+    
+        function mostrarSlides() {
+            // Oculta todos os slides
+            for (let i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
+            }
+    
+            // Remove a classe "ativo" dos pontos
+            for (let i = 0; i < pontos.length; i++) {
+                pontos[i].className = pontos[i].className.replace(" ativo", "");
+            }
+    
+            // Avança para o próximo slide
+            slideIndex++;
+            if (slideIndex > slides.length) slideIndex = 1;
+    
+            // Exibe o slide atual e marca o ponto
+            slides[slideIndex - 1].style.display = "block";
+            pontos[slideIndex - 1].className += " ativo";
+    
+            // Muda a imagem a cada 3 segundos (3000ms)
+            setTimeout(mostrarSlides, 3000);
+        }
+    
+        // Funções para navegação manual
+        function mudarSlide(n) {
+            slideIndex += n - 1;
+            mostrarSlides();
+        }
+    
+        function slideAtual(n) {
+            slideIndex = n - 1;
+            mostrarSlides();
+        }
+    </script>
+</body>
+</html>

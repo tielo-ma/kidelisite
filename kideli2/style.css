@@ -1,0 +1,157 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+/* Estilos do Carrossel */
+.carrossel {
+    position: relative;
+    max-width: 100%;
+    margin: auto;
+    overflow: hidden;
+}
+
+.slide {
+    display: none;
+    width: 100%;
+}
+
+.slide img {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+}
+
+/* Botões de navegação */
+.prev, .next {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    width: auto;
+    padding: 16px;
+    margin-top: -22px;
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    transition: 0.3s;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 0 3px 3px 0;
+    user-select: none;
+}
+
+.next {
+    right: 0;
+    border-radius: 3px 0 0 3px;
+}
+
+.prev:hover, .next:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Pontos indicadores */
+.pontos {
+    margin: 10px 0;
+}
+
+.ponto {
+    cursor: pointer;
+    height: 12px;
+    width: 12px;
+    margin: 0 5px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+    transition: 0.3s;
+}
+
+.ponto.ativo, .ponto:hover {
+    background-color: #e74c3c;
+}
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 5%;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo img {
+    height: 60px;
+}
+
+.menu a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
+}
+
+.carrinho span {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+
+/* Banner */
+.banner img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+/* Categorias e Produtos */
+.categorias, .produtos {
+    padding: 40px 5%;
+    text-align: center;
+}
+
+.categorias h2, .produtos h2 {
+    margin-bottom: 30px;
+    color: #e74c3c;
+}
+
+.categoria-item, .produto {
+    display: inline-block;
+    margin: 15px;
+    vertical-align: top;
+}
+
+.produto {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    width: 250px;
+}
+
+.produto img {
+    width: 100%;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.preco {
+    color: #e74c3c;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+button {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 20px;
+    background: #333;
+    color: white;
+}

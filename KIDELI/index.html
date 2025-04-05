@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kideli - [Descrição breve da empresa, ex.: 'Especializada em produtos infantis de alta qualidade']">
+    <meta name="keywords" content="kideli, produtos infantis, loja online">
+    <title>Kideli - Produtos Premium para Crianças</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- Favicon (adicione seu logo) -->
+    <link rel="icon" href="favicon-kideli.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Navbar Responsiva -->
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <img src="C:\Codes\AulaJS\KIDELI\assets\Kideli - etiquetas adesivas 3cm_.png" alt="Kideli">
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="produtos.html" target="_blank">Produtos</a></li>
+                <li><a href="historia.html" target="_blank">História</a></li>
+                <li><a href="contato.html" target="_blank">Contato</a></li>
+                <li><a href="pedidos.html" target="_blank" class="btn-pedido">Faça seu pedido</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Slideshow de Produtos (Swiper) -->
+    <section class="hero">
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <img src="C:\Codes\AulaJS\KIDELI\image.png" alt="Produto 1">
+                    <div class="slide-content">
+                        <h2>Coleção Verão 2024</h2>
+                        <a href="produtos.html" target="_blank" class="btn">Ver Mais</a>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <img src="produto2.jpg" alt="Produto 2">
+                    <div class="slide-content">
+                        <h2>Lançamentos Exclusivos</h2>
+                        <a href="produtos.html" target="_blank" class="btn">Comprar Agora</a>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <!-- Seção História -->
+    <section class="historia" id="historia">
+        <div class="container">
+            <h2 data-aos="fade-up">Nossa História</h2>
+            <p data-aos="fade-up" data-aos-delay="100">A Kideli nasceu em 20XX com a missão de oferecer produtos infantis seguros e criativos. Nosso compromisso é com a qualidade e o bem-estar das crianças.</p>
+        </div>
+    </section>
+
+    <!-- Seção Contato -->
+    <section class="contato" id="contato">
+        <div class="container">
+            <h2 data-aos="fade-up">Entre em Contato</h2>
+            <div class="contato-grid">
+                <div data-aos="fade-right">
+                    <a href="mailto:contato@kideli.com" class="contato-link">
+                        <i class="fas fa-envelope"></i> contato@kideli.com
+                    </a>
+                </div>
+                <div data-aos="fade-left">
+                    <a href="tel:+5511999999999" class="contato-link">
+                        <i class="fas fa-phone"></i> (11) 99999-9999
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Botão Flutuante do WhatsApp -->
+    <a href="https://wa.me/5511999999999?text=Olá,%20gostaria%20de%20fazer%20um%20pedido!" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; Kideli 2024. Todos os direitos reservados.</p>
+            <div class="social-links">
+                <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="#" target="_blank"><i class="fab fa-facebook"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

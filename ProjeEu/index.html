@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@200;500&display=swap" rel="stylesheet">
+    <title>Marcelo Andrade</title>
+</head>
+
+<body>
+    <div class="caixa-principal" id="home">
+        <nav>
+            <h2 class="portfolio">Portfó<span>lio</span></h2>
+            <div class="menu-toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+              </div>
+              <ul class="nav-list">
+            <ul>
+                <li><a class="link-menu" href="#home">Home</a></li>
+                <li><a class="link-menu" href="#sobre">Sobre</a></li>
+                <li><a class="link-menu" href="#projetos-id">Projetos</a></li>
+                <li><a class="link-menu" href="#fale-comigo">Fale comigo</a></li>
+            </ul>
+        </nav>
+
+        <div class="meu-nome">
+            <h1>Marcelo <span>Andrade</span></h1>
+            <h3>- Desenvolvedor Web/Mobile</h3>
+            <h3>- Infraestrutura de redes e internet</h3>
+            <h3>- Segurança cibernética</h3>
+            <h3>- Banco de dados</h3>
+            <h3>- UX/UI Design</h3>
+        </div>
+    </div>
+
+    <section id="sobre">
+        <img src="Ellipse 1.svg">
+        <div>
+            <h2>Sobre mim</h2>
+            <p style="word-spacing: 8px;">Olá! Eu sou Marcelo, um programador apaixonado por criar soluções inovadoras e eficazes. Com uma mente curiosa e uma paixão por aprender, eu estou sempre buscando novas maneiras de melhorar a experiência do usuário e resolver problemas complexos.</p>
+            <p>Se você está procurando por um desenvolvedor/programador que possa ajudá-lo a transformar suas ideias em realidade, estou aqui para ajudar.</p>
+            <button onclick="window.open('https://api.whatsapp.com/send?phone=5511934184230', '_blank')">Entre em contato</button>
+        </div>
+    </section>
+
+    <div class="projetos" id="projetos-id">
+        <h2>Principais Projetos</h2>
+
+        <div class="card-projetos">
+
+            <div class="card">
+                <img src="https://images.vexels.com/media/users/3/200863/isolated/preview/2a61b8f2e61d56472dc468a932d00b11-bolo-de-chocolate-com-cobertura-de-straberry.png">
+                <h5>Kideli</h5>
+                <p>Projeto de aplicativo para uma confeitaria, ainda esta sendo trabalho as estruturas e alguns códigos.</p>
+                <a href="https://bug-free-enigma-q79jrvww754q39w7q-8000.app.github.dev/" target="_blank">Ver Projeto</a>
+            </div>
+
+            <div class="card">
+                <img src="https://png.pngtree.com/png-clipart/20240621/original/pngtree-coffee-cup-vector-illustration-png-image_15376352.png">
+                <h5>Cafeteria</h5>
+                <p>Projeto de uma cafeteria, onde o site conta com um cabeçalho responsivo com links direto para as sessões, feito com HTML5 e CSS utilizando efeitos com hover.</p>
+                <a href="https://coruscating-centaur-72bcdb.netlify.app/" target="_blank">Ver Projeto</a>
+            </div>
+
+            <div class="card">
+                <img src="https://img.pikbest.com/origin/09/29/85/pIkbEsT98pIkbEsTfGQ.png!w700wp">
+                <h5>Sua Marca</h5>
+                <p>Site disponível para venda de carros esportivos, onde o intuito do site é mostrar os detalhes e ter um link direto para uma negociação, adaptável para outros tipos de negócio.</p>
+                <a href="https://golden-tapioca-76e191.netlify.app/" target="_blank">Ver Projeto</a>
+            </div>
+
+        </div>
+    </div>
+
+    <footer id="fale-comigo">
+        <h5>Marcelo Andrade</h5>
+        <p>Para mais informações</p>
+
+        <div class="social">
+            <a href="https://www.linkedin.com/in/marcelo-andrade-984170310" target="_blank">
+                <img src="linkedin.svg">
+            </a>
+
+            <a href="tel:+5511934184230">
+                <img src="whatsapp.svg">
+            </a>
+        </div>
+
+    </footer>
+
+    <script>
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navList = document.querySelector('.nav-list');
+      
+        mobileMenu.addEventListener('click', () => {
+          navList.classList.toggle('active');
+        });
+      </script>
+
+</body>
+
+
+</html>

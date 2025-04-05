@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KiDeli - Arte e Sabor</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/carrossel.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <img src="https://ogimg.infoglobo.com.br/in/22269593-ba4-81a/FT1086A/Logo-Kidelli.png" alt="KiDeli">
+            </div>
+            <nav class="menu">
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li class="dropdown">
+                        <a href="#">Cardápio <i class="fas fa-chevron-down"></i></a>
+                        <ul class="submenu">
+                            <li><a href="#">Bolos</a></li>
+                            <li><a href="#">Tortas Doces</a></li>
+                            <li><a href="#">Tortas Salgadas</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#">Sobre Nós</a></li>
+                    <li><a href="#">Contato</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <a href="#" class="cart-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Carrossel Principal -->
+    <section class="carrossel">
+        <div class="slide active">
+            <img src="https://receitatodahora.com.br/wp-content/uploads/2018/09/massa-de-torta-doce-2.jpg" alt="Promoção de Tortas">
+            <div class="slide-content">
+                <h2>Tortas Artesanais</h2>
+                <p>Feitas com ingredientes selecionados</p>
+                <a href="#" class="btn">Conheça nosso cardápio</a>
+            </div>
+        </div>
+        <div class="slide">
+            <img src="https://p2.trrsf.com/image/fget/cf/774/0/images.terra.com/2021/01/27/52b647f3-54c6-491f-baed-ecba3eb5ec5d.jpg" alt="Bolos Personalizados">
+            <div class="slide-content">
+                <h2>Bolos Personalizados</h2>
+                <p>Para suas ocasiões especiais</p>
+                <a href="#" class="btn">Faça seu pedido</a>
+            </div>
+        </div>
+        <button class="carrossel-control prev" aria-label="Slide anterior"><i class="fas fa-chevron-left"></i></button>
+        <button class="carrossel-control next" aria-label="Próximo slide"><i class="fas fa-chevron-right"></i></button>
+        <div class="carrossel-dots">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+        </div>
+    </section>
+
+    <!-- Destaques Circulares -->
+    <section class="featured-circles">
+        <div class="container">
+            <!-- Círculo 1 -->
+            <div class="circle-wrapper">
+                <div class="circle">
+                    <img src="https://irp.cdn-website.com/b1b2b34b/dms3rep/multi/receita+de+torta+alema.jpg" alt="Torta de Morango" class="circle-img">
+                    <div class="circle-overlay">
+                        <h3>Tortas</h3>
+                    </div>
+                </div>
+            </div>
+            <!-- Círculo 2 -->
+            <div class="circle-wrapper">
+                <div class="circle">
+                    <img src="https://irp.cdn-website.com/b1b2b34b/dms3rep/multi/receita+de+torta+alema.jpg" alt="Torta de Chocolate" class="circle-img">
+                    <div class="circle-overlay">
+                        <h3>Bolos</h3>
+                    </div>
+                </div>
+            </div>
+            <!-- Círculo 3 -->
+            <div class="circle-wrapper">
+                <div class="circle">
+                    <img src="https://irp.cdn-website.com/b1b2b34b/dms3rep/multi/receita+de+torta+alema.jpg" alt="Torta de Limão" class="circle-img">
+                    <div class="circle-overlay">
+                        <h3>Mousse</h3>
+                    </div>
+                </div>
+            </div>
+            <!-- Círculo 4 -->
+            <div class="circle-wrapper">
+                <div class="circle">
+                    <img src="https://irp.cdn-website.com/b1b2b34b/dms3rep/multi/receita+de+torta+alema.jpg" alt="Torta de Maçã" class="circle-img">
+                    <div class="circle-overlay">
+                        <h3>Edição Limitada</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categorias -->
+    <section class="categories">
+        <div class="container">
+            <h2 class="section-title">Nossas Delícias</h2>
+            <div class="category-grid">
+                <div class="category-card">
+                    <img src="https://img.freepik.com/fotos-gratis/bolo-decorado-com-creme-e-morangos_23-2148951836.jpg" alt="Bolos">
+                    <h3>Bolos</h3>
+                    <a href="#" class="category-link">Ver opções <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="category-card">
+                    <img src="https://img.cybercook.com.br/receitas/776/torta-de-morango-3.jpeg" alt="Tortas Doces">
+                    <h3>Tortas Doces</h3>
+                    <a href="#" class="category-link">Ver opções <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="category-card">
+                    <img src="https://www.receiteria.com.br/wp-content/uploads/receitas-de-torta-salgada-1.jpg" alt="Tortas Salgadas">
+                    <h3>Tortas Salgadas</h3>
+                    <a href="#" class="category-link">Ver opções <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Produtos em Destaque -->
+    <section class="featured-products">
+        <div class="container">
+            <h2 class="section-title">Mais Pedidos</h2>
+            <div class="product-grid">
+                <div class="product-card">
+                    <div class="product-badge">Mais vendido</div>
+                    <img src="https://img.cybercook.com.br/receitas/776/torta-de-morango-3.jpeg" alt="Torta de Morango">
+                    <h3>Torta de Morango</h3>
+                    <p class="product-description">Torta cremosa com morangos frescos</p>
+                    <div class="product-footer">
+                        <p class="price">R$ 45,00</p>
+                        <button class="add-to-cart">Adicionar</button>
+                    </div>
+                </div>
+                <!-- Repetir para outros produtos -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <img src="https://ogimg.infoglobo.com.br/in/22269593-ba4-81a/FT1086A/Logo-Kidelli.png" alt="KiDeli" class="footer-logo">
+                    <p>Arte e sabor em cada fatia.</p>
+                </div>
+                <div class="footer-col">
+                    <h3>Cardápio</h3>
+                    <ul>
+                        <li><a href="#">Bolos</a></li>
+                        <li><a href="#">Tortas Doces</a></li>
+                        <li><a href="#">Tortas Salgadas</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Contato</h3>
+                    <p><i class="fas fa-phone"></i> (11) 9999-9999</p>
+                    <p><i class="fas fa-envelope"></i> contato@kideli.com.br</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KiDeli. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/carrossel.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

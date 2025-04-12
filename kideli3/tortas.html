@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KiDeli Arte & Sabor - Cardápio Exclusivo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/tortas.css">
+</head>
+<body class="premium-page">
+    <!-- Cabeçalho Premium -->
+    <header class="premium-header">
+        <div class="premium-header-content">
+            <a href="index.html" class="premium-logo">
+                <img src="./assets/image/kilogo.png" alt="KiDeli Premium">
+                <span class="premium-slogan">Confeitaria Artesanal</span>
+            </a>
+            
+            <div class="premium-header-right">
+                <div class="premium-contact">
+                    <i class="fas fa-phone"></i> +55 11 99999-9999
+                </div>
+                <div class="premium-lang">
+                    <span>PT</span> | <span>EN</span>
+                </div>
+            </div>
+        </div>
+        <div class="premium-cart-wrapper">
+            <a href="carrinho.html" class="premium-cart-toggle">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="premium-cart-count">0</span>
+            </a>
+            <div class="premium-cart-preview">
+                <div class="premium-cart-items"></div>
+                <div class="premium-cart-total">
+                    Total: <span>R$ 0,00</span>
+                </div>
+                <a href="carrinho.html" class="premium-cart-button">Ver Carrinho</a>
+            </div>
+        </div>
+        
+        <div class="premium-nav">
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li class="active"><a href="tortas.html">Tortas Artesanais</a></li>
+                    <!-- <li><a href="#">Bolos</a></li> -->
+                    <!-- <li><a href="#">Mousse</a></li> -->
+                    <li><a href="#">Encomendas</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="premium-hero" style="background-image: url('./assets/image/red.jpeg')">
+        <div class="premium-hero-overlay"></div>
+        <div class="premium-hero-content">
+            <h1 class="premium-hero-title">Tortas Artesanais</h1>
+            <p class="premium-hero-subtitle">Artesanalmente feitas com muito amor e com ingredientes selecionados</p>
+            <div class="premium-scroll-hint">
+                <span>Explore</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Coleção de Tortas -->
+    <section class="premium-collection">
+        <div class="premium-container">
+            <div class="premium-collection-header">
+                <h2 class="premium-section-title">Nossas Tortas </h2>
+                <p class="premium-section-subtitle">Edição Limitada - Sob encomenda com 48h de antecedência</p>
+            </div>
+            
+            <div class="premium-tortas-grid">
+                                <!-- Torta 1 - Pistache Black -->
+                <article class="premium-torta-card clickable-torta" 
+                data-id="pistache-black"
+                data-product='{
+                    "id": "pistache-black",
+                    "name": "Pistache Black",
+                    "description": "Massa de chocolate belga com recheio de pistache italiano e ganache de chocolate 70%",
+                    "price": 25.00,
+                    "image": "./assets/image/red2.png"
+                }'>
+                <div class="premium-torta-badge">Mais Pedida</div>
+                <div class="premium-torta-image" style="background-image: url('./assets/image/red2.png')">
+                <div class="premium-torta-overlay">
+                <button class="premium-quick-view">Ver Detalhes</button>
+                </div>
+                </div>
+                <div class="premium-torta-info">
+                <h3 class="premium-torta-name">Pistache Black</h3>
+                <p class="premium-torta-desc">Massa de chocolate belga com recheio de pistache italiano e ganache de chocolate 70%</p>
+                <div class="premium-torta-meta">
+                <span class="premium-torta-price">A partir de R$ 110,00</span>
+                <span class="premium-torta-sizes"> M | G</span>
+                </div>
+                </div>
+                </article>
+
+                <!-- Torta 2 - Pistache com Frutas Vermelhas -->
+                <article class="premium-torta-card clickable-torta" 
+                data-id="pistache-frutas"
+                data-product='{
+                    "id": "pistache-frutas",
+                    "name": "Pistache & Frutas",
+                    "description": "Creme de pistache siciliano com geleia de frutas vermelhas e massa amanteigada",
+                    "price": 25.00,
+                    "image": "./assets/image/red2.png"
+                }'>
+                <div class="premium-torta-badge">Novidade</div>
+                <div class="premium-torta-image" style="background-image: url('./assets/image/red2.png')">
+                <div class="premium-torta-overlay">
+                <button class="premium-quick-view">Ver Detalhes</button>
+                </div>
+                </div>
+                <div class="premium-torta-info">
+                <h3 class="premium-torta-name">Pistache & Frutas</h3>
+                <p class="premium-torta-desc">Creme de pistache siciliano com geleia de frutas vermelhas e massa amanteigada</p>
+                <div class="premium-torta-meta">
+                <span class="premium-torta-price">A partir de R$ 110,00</span>
+                <span class="premium-torta-sizes"> M | G</span>
+                </div>
+                </div>
+                </article>
+
+                <!-- Torta 3 - Choco Black -->
+                <article class="premium-torta-card clickable-torta" 
+                data-id="choco-black"
+                data-product='{
+                    "id": "choco-black",
+                    "name": "Choco Black",
+                    "description": "Chocolate nobre 85% com raspas de chocolate branco e folhas de ouro comestível",
+                    "price": 25.00,
+                    "image": "./assets/image/red2.png"
+                }'>
+                <div class="premium-torta-badge">Clássica</div>
+                <div class="premium-torta-image" style="background-image: url('./assets/image/red2.png')">
+                <div class="premium-torta-overlay">
+                <button class="premium-quick-view">Ver Detalhes</button>
+                </div>
+                </div>
+                <div class="premium-torta-info">
+                <h3 class="premium-torta-name">Choco Black</h3>
+                <p class="premium-torta-desc">Chocolate nobre 85% com raspas de chocolate branco e folhas de ouro comestível</p>
+                <div class="premium-torta-meta">
+                <span class="premium-torta-price">A partir de R$ 110,00</span>
+                <span class="premium-torta-sizes"> M | G</span>
+                </div>
+                </div>
+                </article>
+
+                <!-- Torta 4 - Cenoura com Chocolate -->
+                <article class="premium-torta-card clickable-torta" 
+                data-id="cen-choc"
+                data-product='{
+                    "id": "cen-choc",
+                    "name": "Cenoura com Chocolate",
+                    "description": "Massa feita com cenouras selecionadas recheadas com ganash de chocolate belga",
+                    "price": 25.00,
+                    "image": "./assets/image/red2.png"
+                }'>
+                <div class="premium-torta-badge">Premium</div>
+                <div class="premium-torta-image" style="background-image: url('./assets/image/red2.png')">
+                <div class="premium-torta-overlay">
+                <button class="premium-quick-view">Ver Detalhes</button>
+                </div>
+                </div>
+                <div class="premium-torta-info">
+                <h3 class="premium-torta-name">Cenoura com Chocolate</h3>
+                <p class="premium-torta-desc">Massa feita com cenouras selecionadas recheadas com ganash de chocolate belga</p>
+                <div class="premium-torta-meta">
+                <span class="premium-torta-price">A partir de R$ 110,00</span>
+                <span class="premium-torta-sizes"> M | G</span>
+                </div>
+                </div>
+                </article>
+
+                <!-- Torta 5 - Red Velvet -->
+                <article class="premium-torta-card clickable-torta" 
+                data-id="red-vel"
+                data-product='{
+                    "id": "red-vel",
+                    "name": "Red Velvet",
+                    "description": "Massa vermelha sabor baunilha com delicioso recheio de creme de cream cheese com frutas vermelhas",
+                    "price": 25.00,
+                    "image": "./assets/image/red2.png"
+                }'>
+                <div class="premium-torta-badge">Exclusiva</div>
+                <div class="premium-torta-image" style="background-image: url('./assets/image/red2.png')">
+                <div class="premium-torta-overlay">
+                <button class="premium-quick-view">Ver Detalhes</button>
+                </div>
+                </div>
+                <div class="premium-torta-info">
+                <h3 class="premium-torta-name">Red Velvet</h3>
+                <p class="premium-torta-desc">Massa vermelha sabor baunilha com delicioso recheio de creme de cream cheese com frutas vermelhas</p>
+                <div class="premium-torta-meta">
+                <span class="premium-torta-price">A partir de R$ 110,00</span>
+                <span class="premium-torta-sizes"> M | G</span>
+                </div>
+                </div>
+                </article>
+
+                <!-- Torta 6 - Pretígio com Chocolate -->
+                <article class="premium-torta-card clickable-torta" 
+                data-id="prest-choc"
+                data-product='{
+                    "id": "prest-choc",
+                    "name": "Prestígio com Chocolate",
+                    "description": "Massa massia com recheio de coco com chocolate nobre",
+                    "price": 25.00,
+                    "image": "./assets/image/red2.png"
+                }'>
+                <div class="premium-torta-badge">Delicada</div>
+                <div class="premium-torta-image" style="background-image: url('./assets/image/red2.png')">
+                <div class="premium-torta-overlay">
+                <button class="premium-quick-view">Ver Detalhes</button>
+                </div>
+                </div>
+                <div class="premium-torta-info">
+                <h3 class="premium-torta-name">Prestígio com Chocolate</h3>
+                <p class="premium-torta-desc">Massa massia com recheio de coco com chocolate nobre</p>
+                <div class="premium-torta-meta">
+                <span class="premium-torta-price">A partir de R$ 110,00</span>
+                <span class="premium-torta-sizes"> M | G</span>
+                </div>
+                </div>
+                </article>
+
+                <!-- Torta 7 - Doce de Leite com Nozes -->
+                <article class="premium-torta-card clickable-torta" 
+                data-id="dulce-noz"
+                data-product='{
+                    "id": "dulce-noz",
+                    "name": "Doce de Leite com Nozes",
+                    "description": "Massa de baunilha com creme de doce de leite recheado com nozes fresquinhas, finalizado com doce de leite caseiro",
+                    "price": 25.00,
+                    "image": "./assets/image/red2.png"
+                }'>
+                <div class="premium-torta-badge">Especial</div>
+                <div class="premium-torta-image" style="background-image: url('./assets/image/red2.png')">
+                <div class="premium-torta-overlay">
+                <button class="premium-quick-view">Ver Detalhes</button>
+                </div>
+                </div>
+                <div class="premium-torta-info">
+                <h3 class="premium-torta-name">Doce de Leite com Nozes</h3>
+                <p class="premium-torta-desc">Massa de baunilha com creme de doce de leite recheado com nozes fresquinhas, finalizado com doce de leite caseiro</p>
+                <div class="premium-torta-meta">
+                <span class="premium-torta-price">A partir de R$ 110,00</span>
+                <span class="premium-torta-sizes"> M | G</span>
+                </div>
+                </div>
+                </article>
+
+                <!-- Torta 8 - Sensação-->
+                <article class="premium-torta-card clickable-torta" 
+                data-id="sen-sa"
+                data-product='{
+                    "id": "sen-sa",
+                    "name": "Sensação",
+                    "description": "Massa de morango, rechado com delicioso creme de morango finalizado com frutas de altíssima qualidade",
+                    "price": 25.00,
+                    "image": "./assets/image/red2.png"
+                }'>
+                <div class="premium-torta-badge">Refrescante</div>
+                <div class="premium-torta-image" style="background-image: url('./assets/image/red2.png')">
+                <div class="premium-torta-overlay">
+                <button class="premium-quick-view">Ver Detalhes</button>
+                </div>
+                </div>
+                <div class="premium-torta-info">
+                <h3 class="premium-torta-name">Sensação</h3>
+                <p class="premium-torta-desc">Massa de morango, rechado com delicioso creme de morango finalizado com frutas de altíssima qualidade</p>
+                <div class="premium-torta-meta">
+                <span class="premium-torta-price">A partir de R$ 110,00</span>
+                <span class="premium-torta-sizes"> M | G</span>
+                </div>
+                </div>
+                </article>
+
+                <!-- Torta 9 - Cereja com Chocolate -->
+                <article class="premium-torta-card clickable-torta" 
+                data-id="cere-choc"
+                data-product='{
+                    "id": "cere-choc",
+                    "name": "Cereja com Chocolate",
+                    "description": "Massa de chocolate rechado com geleia de cereja coberto com chocolate nobre",
+                    "price": 25.00,
+                    "image": "./assets/image/red2.png"
+                }'>
+                <div class="premium-torta-badge">Clássica</div>
+                <div class="premium-torta-image" style="background-image: url('./assets/image/red2.png')">
+                <div class="premium-torta-overlay">
+                <button class="premium-quick-view">Ver Detalhes</button>
+                </div>
+                </div>
+                <div class="premium-torta-info">
+                <h3 class="premium-torta-name">Cereja com Chocolate</h3>
+                <p class="premium-torta-desc">Massa de chocolate rechado com geleia de cereja coberto com chocolate nobre</p>
+                <div class="premium-torta-meta">
+                <span class="premium-torta-price">A partir de R$ 110,00</span>
+                <span class="premium-torta-sizes"> M | G</span>
+                </div>
+                </div>
+                </article>
+
+                <!-- Torta 10 - Ninho com Nutella -->
+                <article class="premium-torta-card clickable-torta" 
+                data-id="ninho-nuts"
+                data-product='{
+                    "id": "ninho-nuts",
+                    "name": "Ninho com Nutella",
+                    "description": "Massa de baunilha com recheio de creme de chantninho com uma camada generosa de nutella, finalizado com creme e nutella",
+                    "price": 25.00,
+                    "image": "./assets/image/red2.png"
+                }'>
+                <div class="premium-torta-badge">Premium</div>
+                <div class="premium-torta-image" style="background-image: url('./assets/image/red2.png')">
+                <div class="premium-torta-overlay">
+                <button class="premium-quick-view">Ver Detalhes</button>
+                </div>
+                </div>
+                <div class="premium-torta-info">
+                <h3 class="premium-torta-name">Ninho com Nutella</h3>
+                <p class="premium-torta-desc">Massa de baunilha com recheio de creme de chantninho com uma camada generosa de nutella, finalizado com creme e nutella</p>
+                <div class="premium-torta-meta">
+                <span class="premium-torta-price">A partir de R$ 25,00</span>
+                <span class="premium-torta-sizes"> M | G</span>
+                </div>
+                </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Premium -->
+    <div class="premium-modal-overlay">
+        <div class="premium-modal">
+            <button class="premium-modal-close"><i class="fas fa-times"></i></button>
+            
+            <div class="premium-modal-gallery">
+                <div class="premium-main-image" style="background-image: url('assets/pistache-black-detail.jpg')"></div>
+                <div class="premium-thumbnails">
+                    <div class="premium-thumb active" style="background-image: url('assets/pistache-black-detail.jpg')"></div>
+                    <div class="premium-thumb" style="background-image: url('assets/pistache-black-slice.jpg')"></div>
+                    <div class="premium-thumb" style="background-image: url('assets/pistache-black-box.jpg')"></div>
+                </div>
+            </div>
+            
+            <div class="premium-modal-details">
+                <div class="premium-modal-header">
+                    <h2 class="premium-modal-title">Pistache Black</h2>
+                    <div class="premium-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span>(42 avaliações)</span>
+                    </div>
+                </div>
+                
+                <p class="premium-modal-description">
+                    Nossa assinatura: massa de chocolate belga com recheio cremoso de pistache italiano 
+                    e ganache de chocolate 70% Valrhona. Finalização com raspas de chocolate branco 
+                    e folhas de ouro comestível 24k.
+                </p>
+                
+                <div class="premium-size-selector">
+                    <h3>Selecione o tamanho:</h3>
+                    <div class="premium-sizes">
+                        <div class="premium-size-option active">
+                            <input type="radio" name="size" id="size-medio" checked>
+                            <label for="size-medio">
+                                <span class="premium-size-name">Médio (10 fatias)</span>
+                                <span class="premium-size-price">R$ 110,00</span>
+                            </label>
+                        </div>
+                        <div class="premium-size-option">
+                            <input type="radio" name="size" id="size-grande">
+                            <label for="size-grande">
+                                <span class="premium-size-name">Grande (20 fatias)</span>
+                                <span class="premium-size-price">R$ 250,00</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="premium-modal-actions">
+                    <button class="premium-add-to-cart">Adicionar ao Carrinho</button>
+                    <button class="premium-wishlist">
+                        <i class="far fa-heart"></i> Favoritos
+                    </button>
+                </div>
+                
+                <div class="premium-product-details">
+                    <h3>Detalhes da Criação</h3>
+                    <ul class="premium-details-list">
+                        <li><strong>Chef Confeiteiro:</strong> Priscilla Simas</li>
+                        <li><strong>Ingredientes:</strong> Chocolate nobre, pistache italiano</li>
+                        <li><strong>Alérgenos:</strong> Contém glúten, laticínios e frutos secos</li>
+                        <li><strong>Conservação:</strong> 24h refrigerada entre 2-4°C</li>
+                        <li><strong>Embalagem:</strong> Caixa premium com acabamento</li>
+                    </ul>
+                </div>
+                
+                <div class="premium-reviews">
+                    <h3>Avaliações dos Clientes</h3>
+                    <div class="premium-review">
+                        <div class="premium-review-header">
+                            <span class="premium-review-author">Ana Beatriz</span>
+                            <span class="premium-review-date">20/04/2024</span>
+                            <div class="premium-review-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="premium-review-content">
+                            A combinação de pistache com o chocolate é divina! A textura é perfeita 
+                            e o acabamento com o ouro comestível torna a experiência ainda mais especial.
+                        </p>
+                    </div>
+                    
+                    <form class="premium-review-form">
+                        <h4>Deixe sua avaliação</h4>
+                        <div class="premium-review-rating-input">
+                            <span>Sua nota:</span>
+                            <div class="premium-stars">
+                                <i class="far fa-star" data-rating="1"></i>
+                                <i class="far fa-star" data-rating="2"></i>
+                                <i class="far fa-star" data-rating="3"></i>
+                                <i class="far fa-star" data-rating="4"></i>
+                                <i class="far fa-star" data-rating="5"></i>
+                            </div>
+                        </div>
+                        <textarea class="premium-review-textarea" placeholder="Compartilhe sua experiência..."></textarea>
+                        <button type="submit" class="premium-review-submit">Enviar avaliação</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Premium Atualizado -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <img src="./assets/image/kilogo.png" alt="KiDeli" class="footer-logo">
+                <p>Confeitaria Artesanal desde 2024</p>
+                <div class="payment-methods">
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fab fa-cc-paypal"></i>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h3>Cardápio</h3>
+                <ul>
+                    <li><a href="tortas.html">Tortas Premium</a></li>
+                    <li><a href="#">Bolos</a></li>
+                    <li><a href="#">Mousse</a></li>
+                    <li><a href="#">Edição Limitada</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Links Úteis</h3>
+                <ul>
+                    <li><a href="#">Sobre Nós</a></li>
+                    <li><a href="#">Termos de Serviço</a></li>
+                    <li><a href="#">Política de Privacidade</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Contato</h3>
+                <p><i class="fas fa-map-marker-alt"></i> Av. Deodoro da Fonseca, 240 - Natal/RN</p>
+                <p><i class="fas fa-phone"></i> +55 11 99999-9999</p>
+                <p><i class="fas fa-envelope"></i> premium@kideli.com</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 KiDeli Premium. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+    <!-- Botão do WhatsApp -->
+    <a href="https://wa.me/5511999999999" class="premium-whatsapp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script src="js/tortas.js"></script>
+
+    <script>
+        // Garante que tudo está carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configura o clique nas tortas
+            document.querySelectorAll('.clickable-torta').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // Não acionar se clicar no botão de detalhes
+                    if (e.target.closest('.premium-quick-view')) return;
+                    
+                    const productData = JSON.parse(this.dataset.product);
+                    
+                    // Verifica se a função existe
+                    if (typeof window.addToCart === 'function') {
+                        window.addToCart(productData);
+                        
+                        // Feedback visual
+                        this.classList.add('torta-clicked');
+                        setTimeout(() => this.classList.remove('torta-clicked'), 500);
+                    } else {
+                        console.error('Função addToCart não encontrada!');
+                    }
+                });
+            });
+        });
+    </script>
+        
+</body>
+</html>

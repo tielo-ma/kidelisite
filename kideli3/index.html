@@ -4,40 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KiDeli - Arte e Sabor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/carrossel.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Cabeçalho -->
     <header class="header">
         <div class="container">
             <div class="logo">
-                <img src="https://ogimg.infoglobo.com.br/in/22269593-ba4-81a/FT1086A/Logo-Kidelli.png" alt="KiDeli">
+                <img src="./assets/image/kilogo.png" alt="KiDeli">
             </div>
             <nav class="menu">
                 <ul>
                     <li><a href="#">Home</a></li>
-                    <li class="dropdown">
-                        <a href="#">Cardápio <i class="fas fa-chevron-down"></i></a>
-                        <ul class="submenu">
-                            <li><a href="#">Bolos</a></li>
-                            <li><a href="#">Tortas Doces</a></li>
-                            <li><a href="#">Tortas Salgadas</a></li>
-                        </ul>
-                    </li>
+                    <li><a href="tortas.html">Cardápio</a></li>
                     <li><a href="#">Sobre Nós</a></li>
                     <li><a href="#">Contato</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
-                <a href="#" class="cart-btn">
+                <a href="#" class="cart-btn" id="cartButton">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count">0</span>
                 </a>
+            </div>
+            <div class="cart-dropdown" id="cartDropdown">
+                <div class="cart-items">
+                    <!-- Itens serão inseridos aqui via JavaScript -->
+                </div>
+                <div class="cart-total">
+                    Total: <span>R$ 0,00</span>
+                </div>
+                <a href="#" class="checkout-btn">Finalizar Compra</a>
             </div>
         </div>
     </header>
@@ -45,15 +45,15 @@
     <!-- Carrossel Principal -->
     <section class="carrossel">
         <div class="slide active">
-            <img src="https://receitatodahora.com.br/wp-content/uploads/2018/09/massa-de-torta-doce-2.jpg" alt="Promoção de Tortas">
+            <img src="./assets/image/red.jpeg" alt="Promoção de Tortas" loading="lazy">
             <div class="slide-content">
                 <h2>Tortas Artesanais</h2>
                 <p>Feitas com ingredientes selecionados</p>
-                <a href="#" class="btn">Conheça nosso cardápio</a>
+                <a href="tortas.html" class="btn">Conheça nosso cardápio</a>
             </div>
         </div>
         <div class="slide">
-            <img src="https://p2.trrsf.com/image/fget/cf/774/0/images.terra.com/2021/01/27/52b647f3-54c6-491f-baed-ecba3eb5ec5d.jpg" alt="Bolos Personalizados">
+            <img src="./assets/image/bl.jpeg" alt="Bolos Personalizados" loading="lazy">
             <div class="slide-content">
                 <h2>Bolos Personalizados</h2>
                 <p>Para suas ocasiões especiais</p>
@@ -74,7 +74,7 @@
             <!-- Círculo 1 -->
             <div class="circle-wrapper">
                 <div class="circle">
-                    <img src="https://irp.cdn-website.com/b1b2b34b/dms3rep/multi/receita+de+torta+alema.jpg" alt="Torta de Morango" class="circle-img">
+                    <img src="./assets/image/red2.png" alt="Torta de Morango" class="circle-img" loading="lazy">
                     <div class="circle-overlay">
                         <h3>Tortas</h3>
                     </div>
@@ -83,7 +83,7 @@
             <!-- Círculo 2 -->
             <div class="circle-wrapper">
                 <div class="circle">
-                    <img src="https://irp.cdn-website.com/b1b2b34b/dms3rep/multi/receita+de+torta+alema.jpg" alt="Torta de Chocolate" class="circle-img">
+                    <img src="./assets/image/red2.png" alt="Bolo de Chocolate" class="circle-img" loading="lazy">
                     <div class="circle-overlay">
                         <h3>Bolos</h3>
                     </div>
@@ -92,7 +92,7 @@
             <!-- Círculo 3 -->
             <div class="circle-wrapper">
                 <div class="circle">
-                    <img src="https://irp.cdn-website.com/b1b2b34b/dms3rep/multi/receita+de+torta+alema.jpg" alt="Torta de Limão" class="circle-img">
+                    <img src="./assets/image/red2.png" alt="Mousse de Chocolate" class="circle-img" loading="lazy">
                     <div class="circle-overlay">
                         <h3>Mousse</h3>
                     </div>
@@ -101,34 +101,10 @@
             <!-- Círculo 4 -->
             <div class="circle-wrapper">
                 <div class="circle">
-                    <img src="https://irp.cdn-website.com/b1b2b34b/dms3rep/multi/receita+de+torta+alema.jpg" alt="Torta de Maçã" class="circle-img">
+                    <img src="./assets/image/red2.png" alt="Torta Salgada" class="circle-img" loading="lazy">
                     <div class="circle-overlay">
                         <h3>Edição Limitada</h3>
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Categorias -->
-    <section class="categories">
-        <div class="container">
-            <h2 class="section-title">Nossas Delícias</h2>
-            <div class="category-grid">
-                <div class="category-card">
-                    <img src="https://img.freepik.com/fotos-gratis/bolo-decorado-com-creme-e-morangos_23-2148951836.jpg" alt="Bolos">
-                    <h3>Bolos</h3>
-                    <a href="#" class="category-link">Ver opções <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="category-card">
-                    <img src="https://img.cybercook.com.br/receitas/776/torta-de-morango-3.jpeg" alt="Tortas Doces">
-                    <h3>Tortas Doces</h3>
-                    <a href="#" class="category-link">Ver opções <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="category-card">
-                    <img src="https://www.receiteria.com.br/wp-content/uploads/receitas-de-torta-salgada-1.jpg" alt="Tortas Salgadas">
-                    <h3>Tortas Salgadas</h3>
-                    <a href="#" class="category-link">Ver opções <i class="fas fa-arrow-right"></i></a>
                 </div>
             </div>
         </div>
@@ -141,7 +117,7 @@
             <div class="product-grid">
                 <div class="product-card">
                     <div class="product-badge">Mais vendido</div>
-                    <img src="https://img.cybercook.com.br/receitas/776/torta-de-morango-3.jpeg" alt="Torta de Morango">
+                    <img src="./assets/image/red.jpeg" alt="Torta de Morango" class="product-img" loading="lazy">
                     <h3>Torta de Morango</h3>
                     <p class="product-description">Torta cremosa com morangos frescos</p>
                     <div class="product-footer">
@@ -149,7 +125,49 @@
                         <button class="add-to-cart">Adicionar</button>
                     </div>
                 </div>
-                <!-- Repetir para outros produtos -->
+                <div class="product-card">
+                    <div class="product-badge">Novidade</div>
+                    <img src="./assets/image/red.jpeg" alt="Bolo de Chocolate" class="product-img" loading="lazy">
+                    <h3>Bolo de Chocolate</h3>
+                    <p class="product-description">Recheio de brigadeiro e morangos</p>
+                    <div class="product-footer">
+                        <p class="price">R$ 75,00</p>
+                        <button class="add-to-cart">Adicionar</button>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="./assets/image/red.jpeg" alt="Torta Salgada" class="product-img" loading="lazy">
+                    <h3>Torta Salgada</h3>
+                    <p class="product-description">Frango com catupiry e massa crocante</p>
+                    <div class="product-footer">
+                        <p class="price">R$ 55,00</p>
+                        <button class="add-to-cart">Adicionar</button>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-badge">Promoção</div>
+                    <img src="./assets/image/red.jpeg" alt="Torta Alemã" class="product-img" loading="lazy">
+                    <h3>Torta Alemã</h3>
+                    <p class="product-description">Creme suave com chocolate branco</p>
+                    <div class="product-footer">
+                        <p class="price">R$ 50,00</p>
+                        <button class="add-to-cart">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="container">
+            <div class="newsletter-content">
+                <h2>Receba nossas novidades!</h2>
+                <p>Cadastre-se e receba promoções exclusivas</p>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Seu melhor e-mail" required>
+                    <button type="submit" class="btn">Assinar</button>
+                </form>
             </div>
         </div>
     </section>
@@ -159,19 +177,35 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <img src="https://ogimg.infoglobo.com.br/in/22269593-ba4-81a/FT1086A/Logo-Kidelli.png" alt="KiDeli" class="footer-logo">
+                    <img src="./assets/image/kilogo.png" alt="KiDeli" class="footer-logo">
                     <p>Arte e sabor em cada fatia.</p>
+                    <div class="payment-methods">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-cc-paypal"></i>
+                    </div>
                 </div>
                 <div class="footer-col">
                     <h3>Cardápio</h3>
                     <ul>
                         <li><a href="#">Bolos</a></li>
-                        <li><a href="#">Tortas Doces</a></li>
-                        <li><a href="#">Tortas Salgadas</a></li>
+                        <li><a href="tortas.html">Tortas Doces</a></li>
+                        <li><a href="#">Mousses</a></li>
+                        <li><a href="#">Edições Especiais</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Links Úteis</h3>
+                    <ul>
+                        <li><a href="#">Sobre Nós</a></li>
+                        <li><a href="#">Termos de Serviço</a></li>
+                        <li><a href="#">Política de Privacidade</a></li>
+                        <li><a href="#">FAQ</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
                     <h3>Contato</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Av. Deodoro da Fonseca, 240</p>
                     <p><i class="fas fa-phone"></i> (11) 9999-9999</p>
                     <p><i class="fas fa-envelope"></i> contato@kideli.com.br</p>
                     <div class="social-links">
@@ -187,7 +221,194 @@
         </div>
     </footer>
 
+    <!-- Botão do WhatsApp -->
+    <a href="https://wa.me/5511999999999" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
     <script src="js/carrossel.js"></script>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
     <script src="js/main.js"></script>
+
+    <button class="floating-cart" id="floatingCartBtn">
+        <i class="fas fa-shopping-bag"></i>
+        <span class="cart-count" id="cartCount">0</span>
+    </button>
+    <!-- Modal do Carrinho -->
+    <div id="cartModal" class="cart-modal">
+        <div class="cart-modal-content">
+            <span class="cart-modal-close">&times;</span>
+            <h2><i class="fas fa-shopping-bag"></i> Seu Carrinho</h2>
+            
+            <div id="cartItemsContainer">
+                <!-- Exemplo de como um item deve ser gerado DINAMICAMENTE -->
+                <!-- O JavaScript vai criar elementos como este para cada item: -->
+                <div class="cart-item" style="display: none;"> <!-- hidden template -->
+                    <img src="" alt="" class="cart-item-image">
+                    <div class="cart-item-details">
+                        <h3 class="cart-item-title">Nome do Produto</h3>
+                        <p class="cart-item-description">Descrição</p>
+                        <p class="cart-item-quantity">Quantidade: 1</p>
+                    </div>
+                    <div class="cart-item-price">R$ 00,00</div>
+                    <button class="cart-item-remove" data-id="">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                
+                <!-- Mensagem de carrinho vazio (visível inicialmente) -->
+                <div class="empty-cart-message">
+                    <p>Seu carrinho está vazio</p>
+                    <a href="tortas.html" class="btn">Ver Cardápio</a>
+                </div>
+            </div>
+            
+            <div class="cart-discount">
+                <label for="coupon">Cupom de Desconto:</label>
+                <div class="coupon-input">
+                    <input type="text" id="coupon" placeholder="Digite seu cupom">
+                    <button id="applyCoupon" class="btn">Aplicar</button>
+                </div>
+                <p id="couponMessage" class="coupon-message"></p>
+            </div>
+            
+            <div class="delivery-options">
+                <h3>Opções de Entrega/Retirada</h3>
+                <div class="delivery-choice">
+                    <input type="radio" id="delivery" name="deliveryOption" value="delivery" checked>
+                    <label for="delivery">Entrega</label>
+                    
+                    <input type="radio" id="pickup" name="deliveryOption" value="pickup">
+                    <label for="pickup">Retirada no Local</label>
+                </div>
+                
+                <div id="deliveryDetails" class="delivery-details">
+                    <div class="form-group">
+                        <label for="deliveryDate">Data de Entrega:</label>
+                        <input type="date" id="deliveryDate" min="">
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryTime">Horário:</label>
+                        <select id="deliveryTime">
+                            <option value="">Selecione</option>
+                            <option value="09:00-12:00">Manhã (09:00 - 12:00)</option>
+                            <option value="13:00-18:00">Tarde (13:00 - 18:00)</option>
+                            <option value="18:00-21:00">Noite (18:00 - 21:00)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="pickupDetails" class="delivery-details" style="display:none;">
+                    <div class="form-group">
+                        <label for="pickupDate">Data de Retirada:</label>
+                        <input type="date" id="pickupDate" min="">
+                    </div>
+                    <div class="form-group">
+                        <label for="pickupTime">Horário:</label>
+                        <select id="pickupTime">
+                            <option value="">Selecione</option>
+                            <option value="08:00-12:00">Manhã (08:00 - 12:00)</option>
+                            <option value="13:00-17:00">Tarde (13:00 - 17:00)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span id="cartSubtotal">R$ 0,00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Desconto:</span>
+                    <span id="cartDiscount">R$ 0,00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Taxa de Entrega:</span>
+                    <span id="deliveryFee">R$ 0,00</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total:</span>
+                    <span id="cartTotal">R$ 0,00</span>
+                </div>
+            </div>
+            <!-- pagamento -->
+            <div class="payment-methods-container">
+                <h3>Forma de Pagamento</h3>
+                <div class="payment-options">
+                    <div class="payment-option">
+                        <input type="radio" id="pix" name="paymentMethod" value="pix" checked>
+                        <label for="pix">
+                            <i class="fas fa-qrcode"></i> PIX
+                            <span class="payment-discount">(5% de desconto)</span>
+                        </label>
+                    </div>
+                    <div class="payment-option">
+                        <input type="radio" id="creditCard" name="paymentMethod" value="creditCard">
+                        <label for="creditCard">
+                            <i class="far fa-credit-card"></i> Cartão de Crédito
+                        </label>
+                    </div>
+                    <div class="payment-option">
+                        <input type="radio" id="debitCard" name="paymentMethod" value="debitCard">
+                        <label for="debitCard">
+                            <i class="fas fa-credit-card"></i> Cartão de Débito
+                        </label>
+                    </div>
+                </div>
+            
+                <!-- Formulário de cartão (aparece quando selecionado) -->
+                <div id="cardForm" class="card-form" style="display:none;">
+                    <div class="form-group">
+                        <label for="cardNumber">Número do Cartão</label>
+                        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cardExpiry">Validade</label>
+                            <input type="text" id="cardExpiry" placeholder="MM/AA">
+                        </div>
+                        <div class="form-group">
+                            <label for="cardCvv">CVV</label>
+                            <input type="text" id="cardCvv" placeholder="123">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cardName">Nome no Cartão</label>
+                        <input type="text" id="cardName" placeholder="Nome como no cartão">
+                    </div>
+                    <div class="form-group">
+                        <label for="cardInstallments">Parcelamento</label>
+                        <select id="cardInstallments">
+                            <option value="1">1x de R$ 0,00</option>
+                            <!-- Opções serão preenchidas via JS -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button class="btn checkout-btn">Finalizar Compra</button>
+        </div>
+    </div>
+    <!-- Adicionar após o cart-modal -->
+<div id="orderConfirmation" class="order-confirmation-modal">
+    <div class="order-confirmation-content">
+        <span class="confirmation-close">&times;</span>
+        <div class="confirmation-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h2>Pedido Confirmado!</h2>
+        <p>Seu pedido foi recebido com sucesso.</p>
+        <div class="order-details">
+            <p><strong>Número do Pedido:</strong> <span id="orderNumber">KD20230001</span></p>
+            <p><strong>Previsão de Entrega:</strong> <span id="deliveryEstimate">10/06/2023 - 14:00 às 18:00</span></p>
+            <p><strong>Total:</strong> <span id="orderTotal">R$ 120,00</span></p>
+        </div>
+        <div class="confirmation-buttons">
+            <button class="btn btn-outline" id="printOrder">Imprimir Recibo</button>
+            <button class="btn" id="trackOrder">Acompanhar Pedido</button>
+        </div>
+    </div>
+</div>
+    </div>
 </body>
 </html>

@@ -325,6 +325,10 @@ button {
     animation: fadeIn 0.3s;
 }
 
+.auth-modal.active {
+    display: flex;
+  }
+
 .auth-modal-content {
     background-color: white;
     margin: 5vh auto;
@@ -1818,3 +1822,24 @@ button {
     color: #28a745;
   }
   
+/* Garantia de funcionamento do botão de autenticação */
+#authButton {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 1000 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Adicione também para o estado hover */
+#authButton:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+}
+
+/* Garantia contra sobreposições */
+.header-actions {
+    position: relative;
+    z-index: 1001;
+}

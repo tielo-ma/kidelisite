@@ -1,23 +1,37 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicialize o Auth primeiro
-    if (!window.Auth) {
-        initializeAuth(); // Esta função já existe no auth.js
-    }
-    
-    // Depois o ProfileModal
+    // Verifica se o Auth está disponível
+
     if (!window.profileModal) {
         window.profileModal = new ProfileModal();
     }
     
-    // Configura botão de perfil
+    if (typeof Auth === 'undefined') {
+        console.error('Auth system not loaded');
+        return;
+    }
+
+    const authButton = document.getElementById('authButton');
+    if (authButton) {
+        authButton.style.pointerEvents = 'auto';
+        authButton.style.cursor = 'pointer';
+    }
+
+    // Configuração do botão de autenticação
     document.getElementById('authButton')?.addEventListener('click', (e) => {
         e.preventDefault();
-        if (isLoggedIn()) { // Função do auth.js
+        if (window.Auth && window.Auth.isLoggedIn()) {
+            if (!window.profileModal) {
+                window.profileModal = new ProfileModal();
+            }
             window.profileModal.open();
+        } else if (window.Auth) {
+            window.Auth.open('login');
         } else {
-            openAuthModal('login'); // Função do auth.js
+            console.error('Auth system not available');
         }
     });
+
+
     // ========== CONFIGURAÇÕES GERAIS ==========
     const config = {
         deliveryFee: 15.00,

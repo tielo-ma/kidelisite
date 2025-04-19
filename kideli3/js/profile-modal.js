@@ -20,11 +20,7 @@ class ProfileModal {
     this.tabPanes = this.modal.querySelectorAll('.tab-pane');
     this.profileContent = this.modal.querySelector('.profile-modal-content');
     this.loginMessage = this.createLoginMessage();
-    this.logoutBtn = this.modal.querySelector('#logout-btn');
-    
-    if (!this.logoutBtn) {
-      console.warn('[ProfileModal] Botão de logout não encontrado');
-    }
+    this.logoutBtn = document.getElementById('logout-btn');
   }
 
   createLoginMessage() {
@@ -57,22 +53,28 @@ class ProfileModal {
   }
 
   setupEventListeners() {
+    // Fechar modal
     this.closeButton?.addEventListener('click', (e) => {
       e.preventDefault();
       this.close();
     });
     
+    // Fechar ao clicar fora
     this.modal.addEventListener('click', (e) => {
       if (e.target === this.modal) this.close();
     });
 
+    // Botão de login
     document.getElementById('goToLoginBtn')?.addEventListener('click', (e) => {
       e.preventDefault();
       this.close();
       this.showAuthModal();
     });
 
+    // Abas
     this.setupTabs();
+    
+    // Logout
     this.setupLogoutButton();
   }
 
@@ -86,128 +88,43 @@ class ProfileModal {
   }
 
   switchTab(tabId) {
+    // Ativa/desativa abas
     this.tabs.forEach(tab => {
       tab.classList.toggle('active', tab.dataset.tab === tabId);
     });
     
+    // Ativa/desativa conteúdos
     this.tabPanes.forEach(pane => {
       const isActive = pane.id === `${tabId}-content`;
-      pane.style.display = isActive ? 'block' : 'none';
       if (isActive) {
+        pane.style.display = 'block';
         setTimeout(() => pane.classList.add('active'), 10);
       } else {
+        pane.style.display = 'none';
         pane.classList.remove('active');
       }
     });
 
-    if (tabId === 'orders') this.renderOrders();
-    else if (tabId === 'payments') this.renderPayments();
-    else if (tabId === 'benefits') this.renderBenefits();
+    // Atualiza conteúdo específico da aba
+    if (tabId === 'orders') {
+      this.renderOrders();
+    } else if (tabId === 'payments') {
+      this.renderPayments();
+    } else if (tabId === 'benefits') {
+      this.renderBenefits();
+    }
   }
 
   setupLogoutButton() {
-    if (!this.logoutBtn) return;
-
-    // Solução definitiva - recria o elemento para evitar problemas com listeners
-    const newLogoutBtn = this.logoutBtn.cloneNode(true);
-    this.logoutBtn.parentNode.replaceChild(newLogoutBtn, this.logoutBtn);
-    this.logoutBtn = newLogoutBtn;
-
-    // Listener direto sem bind para evitar problemas
-    this.logoutBtn.addEventListener('click', (e) => {
+    this.logoutBtn?.addEventListener('click', (e) => {
       e.preventDefault();
-      this.handleLogout();
+      this.confirmLogout();
     });
-    
-    console.log('[ProfileModal] Botão de logout configurado');
-  }
-
-  handleLogout() {
-    console.log('[ProfileModal] Iniciando processo de logout');
-    
-    // Cria modal de confirmação
-    const modal = document.createElement('div');
-    modal.className = 'confirmation-modal';
-    modal.style.display = 'flex';
-    modal.style.zIndex = '2001';
-    
-    modal.innerHTML = `
-      <div class="confirmation-content">
-        <h3><i class="fas fa-sign-out-alt"></i> Sair da Conta</h3>
-        <p>Tem certeza que deseja sair da sua conta?</p>
-        <div class="confirmation-buttons">
-          <button id="cancelLogoutBtn" class="btn-outline">Cancelar</button>
-          <button id="confirmLogoutBtn" class="btn-gold">Sair</button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-
-    // Configura botão de confirmação
-    document.getElementById('confirmLogoutBtn').addEventListener('click', () => {
-      this.executeLogout();
-      modal.remove();
-    });
-
-    // Configura botão de cancelar
-    document.getElementById('cancelLogoutBtn').addEventListener('click', () => {
-      modal.remove();
-    });
-  }
-
-  executeLogout() {
-    console.log('[ProfileModal] Executando logout...');
-    
-    try {
-      // 1. Limpa todos os dados de autenticação
-      sessionStorage.removeItem('auth_token');
-      sessionStorage.removeItem('auth_user');
-      localStorage.removeItem('kideliCart');
-      
-      // 2. Se existir Auth service, chama o logout
-      if (window.Auth && typeof window.Auth.logout === 'function') {
-        window.Auth.logout().then(() => {
-          this.finalizeLogout();
-        }).catch(error => {
-          console.error('Erro no Auth.logout:', error);
-          this.finalizeLogout();
-        });
-      } else {
-        this.finalizeLogout();
-      }
-    } catch (error) {
-      console.error('Erro durante logout:', error);
-      this.finalizeLogout();
-    }
-  }
-
-  finalizeLogout() {
-    console.log('[ProfileModal] Finalizando logout...');
-    
-    // 1. Fecha o modal de perfil
-    this.close();
-    
-    // 2. Atualiza o botão de login
-    const authButton = document.getElementById('authButton');
-    if (authButton) {
-      authButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
-      authButton.classList.remove('logged-in');
-    }
-    
-    // 3. Recarrega a página após pequeno delay
-    setTimeout(() => {
-      window.location.reload();
-    }, 300);
   }
 
   confirmLogout() {
-    // Cria modal de confirmação
     const modal = document.createElement('div');
     modal.className = 'confirmation-modal';
-    modal.style.display = 'flex';
-    modal.style.zIndex = '2001';
-    
     modal.innerHTML = `
       <div class="confirmation-content">
         <h3><i class="fas fa-sign-out-alt"></i> Sair da Conta</h3>
@@ -218,60 +135,28 @@ class ProfileModal {
         </div>
       </div>
     `;
-    
     document.body.appendChild(modal);
 
-    // Configura botão de confirmação
-    document.getElementById('confirmLogout').addEventListener('click', async () => {
-      try {
-        // 1. Executa o logout
-        await this.performLogout();
-        
-        // 2. Fecha todos os modais
-        modal.remove();
-        this.close();
-        
-        // 3. Atualiza a UI
-        this.updateAuthUI();
-        
-        // 4. Recarrega a página
-        setTimeout(() => {
-          window.location.reload();
-        }, 300);
-        
-      } catch (error) {
-        console.error('Erro no logout:', error);
-        modal.remove();
-        this.showError('Não foi possível sair. Tente novamente.');
-      }
+    document.getElementById('confirmLogout')?.addEventListener('click', () => {
+      this.performLogout();
+      modal.remove();
     });
 
-    // Configura botão de cancelar
-    document.getElementById('cancelLogout').addEventListener('click', () => {
+    document.getElementById('cancelLogout')?.addEventListener('click', () => {
       modal.remove();
     });
   }
 
-  async performLogout() {
-    // Limpa dados locais primeiro (síncrono)
-    sessionStorage.removeItem('auth_token');
-    sessionStorage.removeItem('auth_user');
-    localStorage.removeItem('kideliCart');
-    console.log('[ProfileModal] Dados locais removidos');
-
-    // Se existir Auth service, chama o logout (assíncrono)
+  performLogout() {
     if (window.Auth?.logout) {
-      console.log('[ProfileModal] Chamando Auth.logout()');
-      await window.Auth.logout();
+      window.Auth.logout();
+    } else {
+      // Fallback básico
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_user');
     }
-  }
-
-  updateAuthUI() {
-    const authButton = document.getElementById('authButton');
-    if (authButton) {
-      authButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
-      authButton.classList.remove('logged-in');
-    }
+    this.close();
+    window.location.reload();
   }
 
   showAuthModal() {
@@ -289,6 +174,7 @@ class ProfileModal {
     document.body.style.overflow = 'hidden';
     this.isOpen = true;
     
+    // Verifica autenticação
     const isAuthenticated = await this.checkAuth();
     
     if (isAuthenticated) {
@@ -321,10 +207,12 @@ class ProfileModal {
   }
 
   async getCurrentUser() {
+    // Integração com auth.js
     if (window.Auth?.getCurrentUser) {
       return window.Auth.getCurrentUser();
     }
     
+    // Fallback básico
     const userData = sessionStorage.getItem('auth_user');
     return userData ? JSON.parse(userData) : null;
   }
@@ -344,9 +232,11 @@ class ProfileModal {
   }
 
   async fetchUserData() {
+    // Simulação de API - substitua por sua chamada real
     console.log('[ProfileModal] Buscando dados do usuário...');
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    // Dados mockados para exemplo
     return {
       id: 'user123',
       nome: "Maria Silva",
@@ -389,63 +279,18 @@ class ProfileModal {
   renderUserData() {
     if (!this.currentUser) return;
 
+    // Dados básicos
     this.setTextContent('profile-modal-name', this.currentUser.nome);
     this.setTextContent('profile-modal-email', this.currentUser.email);
     this.setTextContent('profile-phone', this.currentUser.celular);
     this.setTextContent('profile-birthdate', this.formatDate(this.currentUser.dataNascimento));
     this.setTextContent('profile-address', this.formatAddress(this.currentUser.endereco));
 
+    // Fidelidade
     this.renderFidelitySystem();
-    this.updateUserBadge();
     
-    this.setupProfileEditing();
-  }
-
-  setupProfileEditing() {
-    const editBtn = document.getElementById('edit-personal-info');
-    const editForm = document.getElementById('editProfileForm');
-    const cancelBtn = document.getElementById('cancelEdit');
-    const saveForm = document.getElementById('profileEditForm');
-
-    if (!editBtn || !editForm) return;
-
-    editBtn.addEventListener('click', () => {
-      document.getElementById('edit-name').value = this.currentUser.nome;
-      document.getElementById('edit-email').value = this.currentUser.email;
-      document.getElementById('edit-phone').value = this.currentUser.celular;
-      document.getElementById('edit-birthdate').value = this.currentUser.dataNascimento;
-      editForm.style.display = 'block';
-    });
-
-    cancelBtn?.addEventListener('click', () => {
-      editForm.style.display = 'none';
-    });
-
-    saveForm?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      this.currentUser = {
-        ...this.currentUser,
-        nome: document.getElementById('edit-name').value,
-        email: document.getElementById('edit-email').value,
-        celular: document.getElementById('edit-phone').value,
-        dataNascimento: document.getElementById('edit-birthdate').value
-      };
-      
-      this.saveUserData(this.currentUser);
-      editForm.style.display = 'none';
-      this.renderUserData();
-    });
-  }
-
-  saveUserData(userData) {
-    const users = JSON.parse(localStorage.getItem('app_users')) || [];
-    const index = users.findIndex(u => u.id === userData.id);
-    if (index >= 0) {
-      users[index] = userData;
-      localStorage.setItem('app_users', JSON.stringify(users));
-      sessionStorage.setItem('auth_user', JSON.stringify(userData));
-    }
+    // Atualiza badge do usuário
+    this.updateUserBadge();
   }
 
   setTextContent(elementId, text) {
@@ -488,6 +333,7 @@ class ProfileModal {
 
     const currentLevel = levels[nivelFidelidade] || levels.BRONZE;
 
+    // Atualiza badge
     const badge = document.getElementById('vip-level-badge');
     if (badge) {
       badge.className = `vip-badge ${nivelFidelidade.toLowerCase()}`;
@@ -495,12 +341,15 @@ class ProfileModal {
       badge.style.backgroundColor = currentLevel.color;
     }
 
+    // Barra de progresso
     this.renderProgressBar(pontos, currentLevel);
 
+    // Atualiza informações de nível
     this.setTextContent('profile-tier', nivelFidelidade);
     this.setTextContent('profile-points', `${pontos} pontos`);
     this.setTextContent('current-discount', `Desconto: ${currentLevel.discount}%`);
     
+    // Próximo nível
     if (currentLevel.next) {
       const pointsNeeded = currentLevel.nextMin - pontos;
       this.setTextContent('next-level-label', 
@@ -595,6 +444,7 @@ class ProfileModal {
   }
 
   filterOrders() {
+    // Implemente sua lógica de filtragem aqui
     console.log('Filtrando pedidos...');
   }
 
@@ -637,50 +487,6 @@ class ProfileModal {
         this.confirmRemoveCard(cardId);
       });
     });
-
-    const addCardBtn = document.getElementById('add-payment-method');
-    const addCardForm = document.getElementById('addCardForm');
-    const cancelAddBtn = document.getElementById('cancelAddCard');
-    const saveCardForm = document.getElementById('cardForm');
-
-    if (!addCardBtn || !addCardForm) return;
-
-    addCardBtn.addEventListener('click', () => {
-      addCardForm.style.display = 'block';
-    });
-
-    cancelAddBtn?.addEventListener('click', () => {
-      addCardForm.style.display = 'none';
-    });
-
-    saveCardForm?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      const newCard = {
-        id: 'card' + Date.now(),
-        bandeira: this.detectCardBrand(document.getElementById('card-number').value),
-        ultimosDigitos: document.getElementById('card-number').value.slice(-4),
-        nome: document.getElementById('card-name').value,
-        validade: document.getElementById('card-expiry').value,
-        tipo: document.getElementById('card-type').value
-      };
-      
-      this.addPaymentMethod(newCard);
-      addCardForm.style.display = 'none';
-      this.renderPayments();
-    });
-  }
-
-  detectCardBrand(number) {
-    if (/^4/.test(number)) return 'visa';
-    if (/^5[1-5]/.test(number)) return 'mastercard';
-    return 'credit-card';
-  }
-
-  addPaymentMethod(cardData) {
-    if (!this.currentUser.cartoes) this.currentUser.cartoes = [];
-    this.currentUser.cartoes.push(cardData);
-    this.saveUserData(this.currentUser);
   }
 
   confirmRemoveCard(cardId) {
@@ -709,8 +515,9 @@ class ProfileModal {
   }
 
   removeCard(cardId) {
-    this.currentUser.cartoes = this.currentUser.cartoes.filter(card => card.id !== cardId);
-    this.saveUserData(this.currentUser);
+    console.log(`Removendo cartão ${cardId}...`);
+    // Implemente sua lógica de remoção aqui
+    // Atualize a UI após remoção
     this.renderPayments();
   }
 
@@ -719,6 +526,7 @@ class ProfileModal {
     const container = document.getElementById('benefits-content');
     if (!container) return;
 
+    // Verifica se é aniversário
     const isBirthday = this.checkBirthday(dataNascimento);
     
     container.innerHTML = `
@@ -876,6 +684,7 @@ class ProfileModal {
       if (!selectedBenefit) return;
       
       console.log(`Benefício selecionado: ${selectedBenefit}`);
+      // Implemente a lógica para salvar a escolha
       this.showConfirmation('Presente selecionado com sucesso!');
     });
   }
@@ -936,10 +745,13 @@ class ProfileModal {
   }
 }
 
+// Inicialização controlada
 document.addEventListener('DOMContentLoaded', () => {
+  // Garante single instance
   if (!window.profileModal) {
     window.profileModal = new ProfileModal();
     
+    // Configura botão de perfil
     document.getElementById('authButton')?.addEventListener('click', (e) => {
       e.preventDefault();
       window.profileModal?.open();

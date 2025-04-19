@@ -211,38 +211,315 @@ button {
 }
 
 /* Header Actions */
+/* HEADER ACTIONS (mantido igual) */
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.2rem;
+    position: relative;
+}
+
+/* BOTÃO DE CONTA (mantido igual) */
+.account-btn {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: var(--font-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.account-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.account-btn i {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+.account-btn:hover i {
+    transform: scale(1.05);
+}
+
+/* CARRINHO (mantido igual) */
+.cart-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-left: 0.5rem;
 }
 
 .cart-btn {
     position: relative;
-    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
     color: white;
-    transition: var(--transition);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .cart-btn:hover {
     color: var(--premium-gold);
-    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1) rotate(8deg);
 }
 
 .cart-count {
     position: absolute;
-    top: -8px;
-    right: -8px;
+    top: -3px;
+    right: -3px;
     background-color: var(--premium-gold);
     color: var(--premium-dark);
     width: 20px;
     height: 20px;
-    border-radius: var(--radius-full);
+    border-radius: 50%;
     font-size: 0.7rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: 700;
+    border: 2px solid var(--premium-dark);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* DROPDOWN DO CARRINHO (mantido igual) */
+.cart-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    width: 320px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    padding: 15px;
+    z-index: 1001;
+    display: none;
+    margin-top: 10px;
+}
+
+/* ============ NOVOS ESTILOS PARA O MODAL ============ */
+.auth-modal {
+    display: none;
+    position: fixed;
+    z-index: 1100; /* maior que o do carrinho */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    backdrop-filter: blur(3px);
+    animation: fadeIn 0.3s;
+}
+
+.auth-modal-content {
+    background-color: white;
+    margin: 5vh auto;
+    padding: 25px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    position: relative;
+    animation: modalSlideIn 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-modal-body {
+    overflow-y: auto;
+    padding-right: 10px;
+    margin-right: -10px;
+    flex-grow: 1;
+}
+
+.auth-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #777;
+    transition: all 0.3s;
+    z-index: 1;
+}
+
+.auth-close:hover {
+    color: var(--premium-gold);
+    transform: rotate(90deg);
+}
+
+/* TABS (adaptado para modal) */
+.auth-tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: none;
+    font-family: var(--font-secondary);
+    font-weight: 500;
+    color: #777;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    position: relative;
+}
+
+.auth-tab.active {
+    color: var(--premium-gold);
+}
+
+.auth-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--premium-gold);
+}
+
+/* FORMULÁRIOS (mantido mas com ajustes) */
+.auth-form {
+    display: none;
+    padding: 5px 0 15px;
+}
+
+.auth-form.active {
+    display: block;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 18px;
+}
+
+.input-group i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--premium-gold);
+    font-size: 0.95rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 12px 12px 38px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-family: var(--font-secondary);
+    transition: all 0.3s;
+    font-size: 0.9rem;
+}
+
+.input-group input:focus {
+    border-color: var(--premium-gold);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.section-title {
+    font-size: 0.95rem;
+    color: #555;
+    margin: 25px 0 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 500;
+}
+
+/* BOTÃO DE SUBMIT (melhorado) */
+.auth-submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--premium-gold);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-family: var(--font-secondary);
     font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+}
+
+.auth-submit-btn:hover {
+    background: var(--premium-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* ANIMAÇÕES */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    .header-actions {
+        gap: 0.8rem;
+    }
+    
+    .account-btn span {
+        display: none;
+    }
+    
+    .account-btn {
+        padding: 8px 10px;
+    }
+    
+    .auth-modal-content {
+        margin: 10px auto;
+        width: 95%;
+        padding: 20px 15px;
+        max-height: 85vh;
+    }
+    
+    .auth-tab {
+        padding: 10px 8px;
+        font-size: 0.85rem;
+    }
+    
+    .input-group input {
+        padding: 10px 10px 10px 35px;
+    }
 }
 
 /* ===== CARROSSEL ===== */
@@ -1525,3 +1802,19 @@ button {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+.input-group.error input {
+    border-color: #dc3545;
+  }
+  
+  .input-group.error i {
+    color: #dc3545;
+  }
+  
+  .input-group.success input {
+    border-color: #28a745;
+  }
+  
+  .input-group.success i {
+    color: #28a745;
+  }
+  

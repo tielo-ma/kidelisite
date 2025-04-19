@@ -17,28 +17,6 @@
                 <span class="premium-slogan">Confeitaria Artesanal</span>
             </a>
             
-            <div class="premium-header-right">
-                <div class="premium-contact">
-                    <i class="fas fa-phone"></i> +55 11 99999-9999
-                </div>
-                <div class="premium-lang">
-                    <span>PT</span> | <span>EN</span>
-                </div>
-            </div>
-        </div>
-        <div class="premium-cart-wrapper">
-            <a href="carrinho.html" class="premium-cart-toggle">
-                <i class="fas fa-shopping-cart"></i>
-                <span class="premium-cart-count">0</span>
-            </a>
-            <div class="premium-cart-preview">
-                <div class="premium-cart-items"></div>
-                <div class="premium-cart-total">
-                    Total: <span>R$ 0,00</span>
-                </div>
-                <a href="carrinho.html" class="premium-cart-button">Ver Carrinho</a>
-            </div>
-        </div>
         
         <div class="premium-nav">
             <nav>
@@ -344,11 +322,11 @@
             <button class="premium-modal-close"><i class="fas fa-times"></i></button>
             
             <div class="premium-modal-gallery">
-                <div class="premium-main-image" style="background-image: url('assets/pistache-black-detail.jpg')"></div>
+                <div class="premium-main-image" style="background-image: url('./assets/image/bl.jpeg')"></div>
                 <div class="premium-thumbnails">
-                    <div class="premium-thumb active" style="background-image: url('assets/pistache-black-detail.jpg')"></div>
-                    <div class="premium-thumb" style="background-image: url('assets/pistache-black-slice.jpg')"></div>
-                    <div class="premium-thumb" style="background-image: url('assets/pistache-black-box.jpg')"></div>
+                    <div class="premium-thumb active" style="background-image: url('./assets/image/bl.jpeg')"></div>
+                    <div class="premium-thumb" style="background-image: url('./assets/image/bl.jpeg')"></div>
+                    <div class="premium-thumb" style="background-image: url('./assets/image/bl.jpeg')"></div>
                 </div>
             </div>
             
@@ -375,16 +353,16 @@
                     <h3>Selecione o tamanho:</h3>
                     <div class="premium-sizes">
                         <div class="premium-size-option active">
-                            <input type="radio" name="size" id="size-medio" checked>
+                            <input type="radio" name="size" id="size-medio" value="medio" checked>
                             <label for="size-medio">
                                 <span class="premium-size-name">Médio (10 fatias)</span>
                                 <span class="premium-size-price">R$ 110,00</span>
                             </label>
                         </div>
                         <div class="premium-size-option">
-                            <input type="radio" name="size" id="size-grande">
+                            <input type="radio" name="size" id="size-grande" value="grande">
                             <label for="size-grande">
-                                <span class="premium-size-name">Grande (20 fatias)</span>
+                                <span class="premium-size-name">Grande (10 fatias)</span>
                                 <span class="premium-size-price">R$ 250,00</span>
                             </label>
                         </div>
@@ -495,6 +473,7 @@
             <p>&copy; 2024 KiDeli Premium. Todos os direitos reservados.</p>
         </div>
     </div>
+    
 </footer>
 
     <!-- Botão do WhatsApp -->
@@ -503,34 +482,10 @@
     </a>
 
     <!-- Scripts -->
-    <script src="js/main.js"></script>
+    <!-- <script src="js/main.js"></script> -->
     <script src="js/tortas.js"></script>
 
-    <script>
-        // Garante que tudo está carregado
-        document.addEventListener('DOMContentLoaded', function() {
-            // Configura o clique nas tortas
-            document.querySelectorAll('.clickable-torta').forEach(card => {
-                card.addEventListener('click', function(e) {
-                    // Não acionar se clicar no botão de detalhes
-                    if (e.target.closest('.premium-quick-view')) return;
-                    
-                    const productData = JSON.parse(this.dataset.product);
-                    
-                    // Verifica se a função existe
-                    if (typeof window.addToCart === 'function') {
-                        window.addToCart(productData);
-                        
-                        // Feedback visual
-                        this.classList.add('torta-clicked');
-                        setTimeout(() => this.classList.remove('torta-clicked'), 500);
-                    } else {
-                        console.error('Função addToCart não encontrada!');
-                    }
-                });
-            });
-        });
-    </script>
+    
         
 </body>
 </html>

@@ -946,3 +946,33 @@ h1, h2, h3, h4, .premium-section-title {
 .premium-modal-overlay {
     z-index: 10000; /* Valor maior que outros elementos */
 }
+/* Notificação do Carrinho */
+.cart-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #4CAF50;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.cart-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.cart-notification i {
+    margin-right: 10px;
+}
+
+/* Efeito ao clicar na torta */
+.torta-clicked {
+    transform: scale(0.98);
+    transition: transform 0.3s ease;
+}

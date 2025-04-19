@@ -8,6 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/carrossel.css">
+    <link rel="stylesheet" href="css/profile-modal.css">
+    <link rel="icon" href="data:,">
+
 </head>
 <body>
     <!-- Cabeçalho -->
@@ -16,6 +19,7 @@
             <div class="logo">
                 <img src="./assets/image/kilogo.png" alt="KiDeli">
             </div>
+            
             <nav class="menu">
                 <ul>
                     <li><a href="#">Home</a></li>
@@ -24,24 +28,155 @@
                     <li><a href="#">Contato</a></li>
                 </ul>
             </nav>
+            
             <div class="header-actions">
-                <a href="#" class="cart-btn" id="cartButton">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-count">0</span>
-                </a>
+                <!-- Botão que aciona o modal -->
+                <button class="account-btn" id="authButton">
+                    <i class="fas fa-user"></i>
+                    <span class="auth-label">Minha Conta</span>
+                </button>
+                
+                <!-- Carrinho -->
+                <div class="cart-wrapper">
+                    <a href="#" class="cart-btn" id="cartButton">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count">0</span>
+                    </a>
+                    <!-- Dropdown do Carrinho -->
+                    <div class="cart-dropdown" id="cartDropdown">
+                        <div class="cart-items"></div>
+                        <div class="cart-total">
+                            Total: <span>R$ 0,00</span>
+                        </div>
+                        <a href="#" class="checkout-btn">Finalizar Compra</a>
+                    </div>
+                </div>
             </div>
-            <div class="cart-dropdown" id="cartDropdown">
-                <div class="cart-items">
-                    <!-- Itens serão inseridos aqui via JavaScript -->
+            
+            <!-- Modal de Autenticação -->
+            <div id="authModal" class="auth-modal">
+                <div class="auth-modal-content">
+                    <span class="auth-close">&times;</span>
+                    
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" data-tab="login">Entrar</button>
+                        <button class="auth-tab" data-tab="register">Cadastrar</button>
+                    </div>
+                    
+                    <!-- Conteúdo rolável -->
+                    <div class="auth-modal-body">
+                        <!-- Formulário de Login -->
+                        <form id="loginForm" class="auth-form active">
+                            <div class="input-group">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" placeholder="E-mail" required>
+                            </div>
+                            <div class="input-group">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" placeholder="Senha" required>
+                            </div>
+                            <button type="submit" class="auth-submit-btn">
+                                <i class="fas fa-sign-in-alt"></i> Entrar
+                            </button>
+                        </form>
+                        
+                        <!-- Formulário de Cadastro -->
+                        <form id="registerForm" class="auth-form">
+                            <!-- Dados Pessoais -->
+                            <h4 class="section-title">Dados Pessoais</h4>
+                            <div class="input-group">
+                                <i class="fas fa-user"></i>
+                                <input type="text" placeholder="Nome completo*" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" placeholder="E-mail*" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" placeholder="Senha*" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-phone"></i>
+                                <input type="tel" placeholder="Celular (WhatsApp)*" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-birthday-cake"></i>
+                                <input type="date" placeholder="Data de nascimento">
+                            </div>
+            
+                            <!-- Endereço -->
+                            <h4 class="section-title">Endereço de Entrega</h4>
+                            
+                            <div class="form-row">
+                                <div class="input-group" style="flex: 2">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <input type="text" id="cep" placeholder="CEP*" required>
+                                </div>
+                                <button type="button" id="buscarCep" class="cep-btn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-road"></i>
+                                <input type="text" id="rua" placeholder="Logradouro*" required>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="input-group" style="flex: 1">
+                                    <i class="fas fa-home"></i>
+                                    <input type="text" placeholder="Número*" required>
+                                </div>
+                                
+                                <div class="input-group" style="flex: 2">
+                                    <i class="fas fa-building"></i>
+                                    <input type="text" placeholder="Complemento">
+                                </div>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-map-signs"></i>
+                                <input type="text" id="bairro" placeholder="Bairro*" required>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="input-group" style="flex: 3">
+                                    <i class="fas fa-city"></i>
+                                    <input type="text" id="cidade" value="Natal" readonly>
+                                </div>
+                                
+                                <div class="input-group" style="flex: 1">
+                                    <i class="fas fa-flag"></i>
+                                    <input type="text" id="uf" value="RN" readonly>
+                                </div>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-map-pin"></i>
+                                <input type="text" placeholder="Ponto de referência">
+                            </div>
+            
+                            <div class="form-footer">
+                                <button type="submit" class="auth-submit-btn">
+                                    <i class="fas fa-user-plus"></i> Cadastrar
+                                </button>
+                                
+                                <div class="address-note">
+                                    <i class="fas fa-info-circle"></i> Atendemos apenas em Natal/RN
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div class="cart-total">
-                    Total: <span>R$ 0,00</span>
-                </div>
-                <a href="#" class="checkout-btn">Finalizar Compra</a>
             </div>
         </div>
     </header>
-
+          
     <!-- Carrossel Principal -->
     <section class="carrossel">
         <div class="slide active">
@@ -122,7 +257,7 @@
                     <p class="product-description">Torta cremosa com morangos frescos</p>
                     <div class="product-footer">
                         <p class="price">R$ 45,00</p>
-                        <button class="add-to-cart">Adicionar</button>
+                        <button class="add-to-cart" data-id="1" data-name="Torta de Morango" data-price="45.00" data-img="./assets/image/red.jpeg">Adicionar</button>
                     </div>
                 </div>
                 <div class="product-card">
@@ -132,7 +267,7 @@
                     <p class="product-description">Recheio de brigadeiro e morangos</p>
                     <div class="product-footer">
                         <p class="price">R$ 75,00</p>
-                        <button class="add-to-cart">Adicionar</button>
+                        <button class="add-to-cart" data-id="2" data-name="Bolo de Chocolate" data-price="75.00" data-img="./assets/image/red.jpeg">Adicionar</button>
                     </div>
                 </div>
                 <div class="product-card">
@@ -141,7 +276,7 @@
                     <p class="product-description">Frango com catupiry e massa crocante</p>
                     <div class="product-footer">
                         <p class="price">R$ 55,00</p>
-                        <button class="add-to-cart">Adicionar</button>
+                        <button class="add-to-cart" data-id="3" data-name="Torta Salgada" data-price="55.00" data-img="./assets/image/red.jpeg">Adicionar</button>
                     </div>
                 </div>
                 <div class="product-card">
@@ -151,7 +286,7 @@
                     <p class="product-description">Creme suave com chocolate branco</p>
                     <div class="product-footer">
                         <p class="price">R$ 50,00</p>
-                        <button class="add-to-cart">Adicionar</button>
+                        <button class="add-to-cart" data-id="4" data-name="Torta Alemã" data-price="50.00" data-img="./assets/image/red.jpeg">Adicionar</button>
                     </div>
                 </div>
             </div>
@@ -226,14 +361,12 @@
         <i class="fab fa-whatsapp"></i>
     </a>
 
-    <script src="js/carrossel.js"></script>
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
-    <script src="js/main.js"></script>
-
+    <!-- Botão Flutuante do Carrinho -->
     <button class="floating-cart" id="floatingCartBtn">
         <i class="fas fa-shopping-bag"></i>
         <span class="cart-count" id="cartCount">0</span>
     </button>
+
     <!-- Modal do Carrinho -->
     <div id="cartModal" class="cart-modal">
         <div class="cart-modal-content">
@@ -332,7 +465,8 @@
                     <span id="cartTotal">R$ 0,00</span>
                 </div>
             </div>
-            <!-- pagamento -->
+            
+            <!-- Formas de Pagamento -->
             <div class="payment-methods-container">
                 <h3>Forma de Pagamento</h3>
                 <div class="payment-options">
@@ -386,29 +520,330 @@
                     </div>
                 </div>
             </div>
-            <button class="btn checkout-btn">Finalizar Compra</button>
+            <button class="btn checkout-btn" id="finalizarCompraBtn">Finalizar Compra</button>
         </div>
     </div>
-    <!-- Adicionar após o cart-modal -->
-<div id="orderConfirmation" class="order-confirmation-modal">
-    <div class="order-confirmation-content">
-        <span class="confirmation-close">&times;</span>
-        <div class="confirmation-icon">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <h2>Pedido Confirmado!</h2>
-        <p>Seu pedido foi recebido com sucesso.</p>
-        <div class="order-details">
-            <p><strong>Número do Pedido:</strong> <span id="orderNumber">KD20230001</span></p>
-            <p><strong>Previsão de Entrega:</strong> <span id="deliveryEstimate">10/06/2023 - 14:00 às 18:00</span></p>
-            <p><strong>Total:</strong> <span id="orderTotal">R$ 120,00</span></p>
-        </div>
-        <div class="confirmation-buttons">
-            <button class="btn btn-outline" id="printOrder">Imprimir Recibo</button>
-            <button class="btn" id="trackOrder">Acompanhar Pedido</button>
+    
+    <!-- Modal de Confirmação de Pedido -->
+    <div id="orderConfirmation" class="order-confirmation-modal">
+        <div class="order-confirmation-content">
+            <span class="confirmation-close">&times;</span>
+            <div class="confirmation-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Pedido Confirmado!</h2>
+            <p>Seu pedido foi recebido com sucesso.</p>
+            <div class="order-details">
+                <p><strong>Número do Pedido:</strong> <span id="orderNumber">KD20230001</span></p>
+                <p><strong>Previsão de Entrega:</strong> <span id="deliveryEstimate">10/06/2023 - 14:00 às 18:00</span></p>
+                <p><strong>Total:</strong> <span id="orderTotal">R$ 120,00</span></p>
+            </div>
+            <div class="confirmation-buttons">
+                <button class="btn btn-outline" id="printOrder">Imprimir Recibo</button>
+                <button class="btn" id="trackOrder">Acompanhar Pedido</button>
+            </div>
         </div>
     </div>
-</div>
+    <!-- Modal de Perfil do Cliente -->
+    <div id="profileModal" class="profile-modal">
+        <div class="profile-modal-content">
+            <span class="profile-close">&times;</span>
+            
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <img src="./assets/image/avatar.webp" alt="Avatar" id="profile-avatar-img">
+                    <div class="vip-badge" id="vip-level-badge">
+                        <i class="fas fa-crown"></i>
+                        <span id="vip-level">BRONZE</span>
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <h2 id="profile-modal-name">Nome do Cliente</h2>
+                    <p id="profile-modal-email">email@cliente.com</p>
+                    <div class="profile-status">
+                        <span id="profile-tier">Bronze</span>
+                        <span id="profile-points">0 pontos</span>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button id="logout-btn" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </div>
+            
+            <div class="profile-tabs">
+                <button class="profile-tab active" data-tab="overview">
+                    <i class="fas fa-user"></i> Visão Geral
+                </button>
+                <button class="profile-tab" data-tab="orders">
+                    <i class="fas fa-history"></i> Meus Pedidos
+                </button>
+                <button class="profile-tab" data-tab="payments">
+                    <i class="fas fa-credit-card"></i> Pagamentos
+                </button>
+                <button class="profile-tab" data-tab="benefits">
+                    <i class="fas fa-award"></i> Benefícios
+                </button>
+            </div>
+            
+            <div class="profile-tab-content">
+                <!-- Visão Geral -->
+                <div id="overview-content" class="tab-pane active">
+                    <div class="personal-info">
+                        <h3><i class="fas fa-id-card"></i> Informações Pessoais</h3>
+                        <div class="info-grid">
+                            <div>
+                                <label>Data de Nascimento</label>
+                                <p id="profile-birthdate">--/--/----</p>
+                            </div>
+                            <div>
+                                <label>Telefone</label>
+                                <p id="profile-phone">(--) -----.----</p>
+                            </div>
+                            <div>
+                                <label>Endereço Principal</label>
+                                <p id="profile-address">Não informado</p>
+                            </div>
+                        </div>
+                        <button class="btn-edit" id="edit-personal-info">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                    </div>
+                    <div class="edit-form" id="editProfileForm" style="display:none;">
+                        <h3><i class="fas fa-edit"></i> Editar Perfil</h3>
+                        <form id="profileEditForm">
+                            <div class="form-group">
+                                <label>Nome Completo</label>
+                                <input type="text" id="edit-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>E-mail</label>
+                                <input type="email" id="edit-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Telefone</label>
+                                <input type="tel" id="edit-phone" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Data de Nascimento</label>
+                                <input type="date" id="edit-birthdate">
+                            </div>
+                            <div class="form-buttons">
+                                <button type="button" class="btn-outline" id="cancelEdit">Cancelar</button>
+                                <button type="submit" class="btn-gold">Salvar</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="loyalty-status">
+                        <h3><i class="fas fa-medal"></i> Seu Status de Fidelidade</h3>
+                        <div class="loyalty-card">
+                            <div class="loyalty-progress">
+                                <div class="progress-bar">
+                                    <div id="loyalty-progress-bar" class="progress-fill"></div>
+                                </div>
+                                <div class="progress-labels">
+                                    <span>Seu nível atual</span>
+                                    <span id="next-level-label"></span>
+                                </div>
+                            </div>
+                            <div class="loyalty-perks">
+                                <div class="perk">
+                                    <i class="fas fa-gift"></i>
+                                    <span>Desconto: <strong id="current-discount"></strong></span>
+                                </div>
+                                <div class="perk">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Multiplicador: <strong id="current-multiplier"></strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Meus Pedidos -->
+                <div id="orders-content" class="tab-pane">
+                    <div class="orders-header">
+                        <h3><i class="fas fa-shopping-bag"></i> Histórico de Pedidos</h3>
+                        <div class="order-filters">
+                            <select id="order-time-filter" class="elegant-select">
+                                <option value="all">Todos os pedidos</option>
+                                <option value="3months">Últimos 3 meses</option>
+                                <option value="6months">Últimos 6 meses</option>
+                            </select>
+                            <select id="order-status-filter" class="elegant-select">
+                                <option value="all">Todos os status</option>
+                                <option value="delivered">Entregues</option>
+                                <option value="processing">Em preparo</option>
+                                <option value="canceled">Cancelados</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="orders-list" class="orders-list">
+                        <!-- Pedidos serão inseridos aqui via JS -->
+                    </div>
+                </div>
+                
+                <!-- Pagamentos -->
+                <div id="payments-content" class="tab-pane">
+                    <div class="payments-header">
+                        <h3><i class="fas fa-wallet"></i> Métodos de Pagamento</h3>
+                        <button class="btn-add-card" id="add-payment-method">
+                            <i class="fas fa-plus"></i> Adicionar Cartão
+                        </button>
+                    </div>
+                    
+                    <div id="payment-methods-list" class="payment-methods-list">
+                        <!-- Cartões serão inseridos aqui via JS -->
+                    </div>
+                    
+                    <div class="billing-info">
+                        <h4><i class="fas fa-receipt"></i> Informações de Faturamento</h4>
+                        <div id="billing-address" class="address-card"></div>
+                        <button class="btn-edit" id="edit-billing-info">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                    </div>
+                </div>
+                <div class="add-card-form" id="addCardForm" style="display:none;">
+                    <h3><i class="fas fa-credit-card"></i> Adicionar Cartão</h3>
+                    <form id="cardForm">
+                        <div class="form-group">
+                            <label>Nome no Cartão</label>
+                            <input type="text" id="card-name" placeholder="Como no cartão" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Número do Cartão</label>
+                            <input type="text" id="card-number" placeholder="1234 5678 9012 3456" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Validade</label>
+                                <input type="text" id="card-expiry" placeholder="MM/AA" required>
+                            </div>
+                            <div class="form-group">
+                                <label>CVV</label>
+                                <input type="text" id="card-cvv" placeholder="123" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Cartão</label>
+                            <select id="card-type" required>
+                                <option value="credit">Crédito</option>
+                                <option value="debit">Débito</option>
+                            </select>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="button" class="btn-outline" id="cancelAddCard">Cancelar</button>
+                            <button type="submit" class="btn-gold">Salvar Cartão</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Benefícios -->
+                <div id="benefits-content" class="tab-pane">
+                    <div class="benefits-header">
+                        <h3><i class="fas fa-star"></i> Seus Benefícios Exclusivos</h3>
+                        <div class="tier-info">
+                            <span id="current-tier-badge" class="tier-badge bronze">Bronze</span>
+                            <span id="days-to-next-tier">Faltam 250 pontos para Prata</span>
+                        </div>
+                    </div>
+                    
+                    <div class="benefits-grid">
+                        <div class="benefit-card vip-benefit">
+                            <div class="benefit-icon">
+                                <i class="fas fa-gem"></i>
+                            </div>
+                            <h4>Presente de Aniversário</h4>
+                            <p>Receba <strong>1000 pontos bônus</strong> no seu aniversário</p>
+                            <div class="benefit-status" id="birthday-benefit-status">
+                                Disponível em 15/01
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-card vip-benefit">
+                            <div class="benefit-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h4>Entrega Prioritária</h4>
+                            <p>Seus pedidos têm prioridade no preparo e entrega</p>
+                        </div>
+                        
+                        <div class="benefit-card vip-benefit">
+                            <div class="benefit-icon">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <h4>Descontos Exclusivos</h4>
+                            <p>Acesso a ofertas especiais para clientes VIP</p>
+                        </div>
+                        
+                        <div class="benefit-card upcoming-benefit">
+                            <div class="benefit-icon">
+                                <i class="fas fa-lock-open"></i>
+                            </div>
+                            <h4>Próximo Nível</h4>
+                            <p id="next-tier-benefits">Alcance <strong>Prata</strong> para desbloquear frete grátis em compras acima de R$100</p>
+                            <div class="progress-container">
+                                <div id="tier-progress-bar" class="progress-fill" style="width: 25%"></div>
+                            </div>
+                        </div>
+
+                        <div class="birthday-benefit">
+                            <h4><i class="fas fa-birthday-cake"></i> Seu Presente de Aniversário</h4>
+                            <div class="benefit-options">
+                              <div class="benefit-option selected" data-benefit="free-shipping">
+                                <i class="fas fa-truck"></i>
+                                <span>Frete Grátis por 30 dias</span>
+                              </div>
+                              <div class="benefit-option" data-benefit="discount">
+                                <i class="fas fa-percentage"></i>
+                                <span>15% de desconto em 1 pedido</span>
+                              </div>
+                              <div class="benefit-option" data-benefit="points">
+                                <i class="fas fa-coins"></i>
+                                <span>1000 pontos extras</span>
+                              </div>
+                            </div>
+                            <button class="btn-gold" id="confirm-benefit">Confirmar Escolha</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    
+        
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/profile-modal.js"></script>
+    <script src="js/carrossel.js"></script>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // Inicializa o modal quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', () => {
+          // Verifica se o usuário está logado
+          const isLoggedIn = sessionStorage.getItem('auth_token') !== null;
+          
+          // Inicializa o modal de perfil
+          window.profileModal = new ProfileModal();
+          
+          // Configura o botão de autenticação
+          const authButton = document.getElementById('authButton');
+          if (authButton) {
+            authButton.addEventListener('click', (e) => {
+              e.preventDefault();
+              if (isLoggedIn) {
+                profileModal.open();
+              } else {
+                document.getElementById('authModal').style.display = 'block';
+              }
+            });
+          }
+        });
+        </script>
 </body>
 </html>

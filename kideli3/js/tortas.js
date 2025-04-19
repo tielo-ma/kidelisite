@@ -1,5 +1,13 @@
 // tortas.js - Script para a página de Tortas Premium
 document.addEventListener('DOMContentLoaded', function() {
+    cleanDuplicateCartItems();
+    function updateCartCount() {
+        const cartItems = getCartItems();
+        const count = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        document.querySelectorAll('.cart-count').forEach(el => {
+            el.textContent = count;
+        });
+    }
     // ========== CONFIGURAÇÃO INICIAL ==========
     const modalOverlay = document.querySelector('.premium-modal-overlay');
     const modalClose = document.querySelector('.premium-modal-close');
@@ -10,9 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'pistache-black': {
             name: 'Pistache Black',
             images: [
-                'assets/pistache-black-detail.jpg',
-                'assets/pistache-black-slice.jpg',
-                'assets/pistache-black-box.jpg'
+                './assets/image/bl.jpeg',
+                './assets/image/ninuts.jpeg',
+                './assets/image/red2.png'
             ],
             prices: {
                 'medio': '110,00',
@@ -22,9 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'pistache-frutas': {
             name: 'Pistache & Frutas',
             images: [
-                'assets/pistache-frutas-detail.jpg',
-                'assets/pistache-frutas-slice.jpg',
-                'assets/pistache-frutas-box.jpg'
+                './assets/image/bl.jpeg',
+                './assets/image/ninuts.jpeg',
+                './assets/image/red2.png'
             ],
             prices: {
                 'medio': '110,00',
@@ -34,9 +42,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'choco-black': {
             name: 'Choco Black',
             images: [
-                'assets/choco-black-detail.jpg',
-                'assets/choco-black-slice.jpg',
-                'assets/choco-black-box.jpg'
+                './assets/image/bl.jpeg',
+                './assets/image/ninuts.jpeg',
+                './assets/image/red2.png'
             ],
             prices: {
                 'medio': '110,00',
@@ -46,9 +54,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'cen-choc': {
             name: 'Cenoura com Chocolate',
             images: [
-                'assets/pistache-black-detail.jpg',
-                'assets/pistache-black-slice.jpg',
-                'assets/pistache-black-box.jpg'
+                './assets/image/bl.jpeg',
+                './assets/image/ninuts.jpeg',
+                './assets/image/red2.png'
             ],
             prices: {
                 'medio': '110,00',
@@ -58,9 +66,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'red-vel': {
             name: 'Red Velvet',
             images: [
-                'assets/pistache-black-detail.jpg',
-                'assets/pistache-black-slice.jpg',
-                'assets/pistache-black-box.jpg'
+                './assets/image/bl.jpeg',
+                './assets/image/ninuts.jpeg',
+                './assets/image/red2.png'
             ],
             prices: {
                 'medio': '110,00',
@@ -70,9 +78,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'prest-choc': {
             name: 'Prestígio com Chocolate',
             images: [
-                'assets/pistache-black-detail.jpg',
-                'assets/pistache-black-slice.jpg',
-                'assets/pistache-black-box.jpg'
+                './assets/image/bl.jpeg',
+                './assets/image/ninuts.jpeg',
+                './assets/image/red2.png'
             ],
             prices: {
                 'medio': '110,00',
@@ -82,9 +90,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'dulce-noz': {
             name: 'Doce de Leite com Nozes',
             images: [
-                'assets/pistache-black-detail.jpg',
-                'assets/pistache-black-slice.jpg',
-                'assets/pistache-black-box.jpg'
+                './assets/image/bl.jpeg',
+                './assets/image/ninuts.jpeg',
+                './assets/image/red2.png'
             ],
             prices: {
                 'medio': '110,00',
@@ -94,9 +102,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'sen-sa': {
             name: 'Sensação',
             images: [
-                'assets/pistache-black-detail.jpg',
-                'assets/pistache-black-slice.jpg',
-                'assets/pistache-black-box.jpg'
+                './assets/image/bl.jpeg',
+                './assets/image/ninuts.jpeg',
+                './assets/image/red2.png'
             ],
             prices: {
                 'medio': '110,00',
@@ -106,9 +114,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'cere-choc': {
             name: 'Cereja com Chocolate',
             images: [
-                'assets/pistache-black-detail.jpg',
-                'assets/pistache-black-slice.jpg',
-                'assets/pistache-black-box.jpg'
+                './assets/image/bl.jpeg',
+                './assets/image/ninuts.jpeg',
+                './assets/image/red2.png'
             ],
             prices: {
                 'medio': '110,00',
@@ -118,9 +126,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'ninho-nuts': {
             name: 'Ninho com Nutella',
             images: [
-                'assets/pistache-black-detail.jpg',
-                'assets/pistache-black-slice.jpg',
-                'assets/pistache-black-box.jpg'
+                './assets/image/bl.jpeg',
+                './assets/image/ninuts.jpeg',
+                './assets/image/red2.png'
             ],
             prices: {
                 'medio': '110,00',
@@ -129,21 +137,218 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // ========== FUNÇÕES DO CARRINHO ==========
+    function getCartItems() {
+        return JSON.parse(localStorage.getItem('kideliCart')) || [];
+    }
+
+    function saveCartItems(items) {
+        localStorage.setItem('kideliCart', JSON.stringify(items));
+    }
+
+    function cleanDuplicateCartItems() {
+        const cartItems = getCartItems();
+        const uniqueItems = [];
+        const seenIds = new Set();
+    
+        cartItems.forEach(item => {
+            if (item && item.id && !isNaN(item.price) && item.quantity > 0) {
+                if (!seenIds.has(item.id)) {
+                    seenIds.add(item.id);
+                    uniqueItems.push(item);
+                } else {
+                    console.log('Item duplicado removido:', item);
+                }
+            }
+        });
+    
+        saveCartItems(uniqueItems);
+        return uniqueItems;
+    }
+
+    
+
+    // ========== FUNÇÃO PARA ADICIONAR AO CARRINHO ==========
+    function addToCart(productData, fromModal = false) {
+        let cartItems = getCartItems();
+        const productId = productData.id;
+        const product = products[productId] || productData;
+    
+        // Verificação do tamanho
+        let selectedSize = 'medio';
+        if (fromModal) {
+            const sizeInput = document.querySelector('.premium-modal .premium-size-option.active input');
+            selectedSize = sizeInput?.value || 'medio';
+        } else {
+            const sizeInput = document.querySelector(`.clickable-torta[data-id="${productId}"] .premium-size-option.active input`);
+            selectedSize = sizeInput?.value || 'medio';
+        }
+    
+        // CONVERSÃO CORRIGIDA DEFINITIVA DO PREÇO
+        let price = 0;
+        if (product.prices && product.prices[selectedSize]) {
+            const priceStr = product.prices[selectedSize];
+            // Método seguro para converter formato brasileiro para número
+            price = parseFloat(
+                priceStr.replace('R$', '')
+                       .trim()
+                       .replace(/\./g, '')  // Remove pontos de milhar
+                       .replace(',', '.')   // Substitui vírgula por ponto
+            );
+        }
+    
+        // Verificação final do preço
+        if (isNaN(price)) {
+            console.error('Preço inválido:', product.prices[selectedSize]);
+            price = 0;
+        }
+    
+        // ID único baseado no produto e tamanho
+        const uniqueId = `${productId}-${selectedSize}`;
+    
+        // Verifica se já existe no carrinho
+        const existingItemIndex = cartItems.findIndex(item => item.id === uniqueId);
+    
+        if (existingItemIndex !== -1) {
+            cartItems[existingItemIndex].quantity += 1;
+        } else {
+            cartItems.push({
+                id: uniqueId,
+                name: `${product.name} (${selectedSize})`,
+                price: price, // Armazenado como número
+                image: product.images?.[0] || './assets/image/red2.png',
+                size: selectedSize,
+                quantity: 1
+            });
+        }
+    
+        saveCartItems(cartItems);
+        updateCartDisplay();
+        showCartNotification(`${product.name} (${selectedSize})`);
+        
+        console.log('Item adicionado:', {
+            name: product.name,
+            size: selectedSize,
+            price: price,
+            quantity: existingItemIndex !== -1 ? cartItems[existingItemIndex].quantity : 1
+        });
+        
+        return true;
+    }
+    
+    // ========== FUNÇÃO PARA ATUALIZAR O CARRINHO ==========
+    function updateCartDisplay() {
+        const cartItems = getCartItems();
+        const count = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        const total = cartItems.reduce((sum, item) => {
+            // Garante que o preço é um número
+            const itemPrice = typeof item.price === 'string' 
+                ? parseFloat(item.price.replace(',', '.')) 
+                : item.price;
+                
+            return sum + (itemPrice * (item.quantity || 1));
+        }, 0);
+    
+        // Atualiza contagem
+        document.querySelectorAll('.cart-count').forEach(el => {
+            el.textContent = count;
+        });
+        
+        // Atualiza total (com formatação brasileira)
+        const totalElement = document.querySelector('.cart-total');
+        if (totalElement) {
+            totalElement.textContent = formatCurrency(total);
+        }
+    
+        console.log('Carrinho atualizado:', {
+            itens: cartItems,
+            total: total
+        });
+    }
+    
+    // ========== FUNÇÃO AUXILIAR PARA FORMATAÇÃO ==========
+    function formatCurrency(value) {
+        // Formatação segura para o padrão brasileiro
+        return 'R$ ' + value.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    // FUNÇÃO PARA CALCULAR E ATUALIZAR O CARRINHO COMPLETO
+    function updateCartDisplay() {
+        const cartItems = getCartItems();
+        const count = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        const total = cartItems.reduce((sum, item) => {
+            // Garante que o preço é um número
+            const price = typeof item.price === 'string' 
+                ? parseFloat(item.price.replace('R$', '').replace(',', '.'))
+                : item.price;
+                
+            return sum + (price * (item.quantity || 1));
+        }, 0);
+    
+        // Atualiza contagem
+        document.querySelectorAll('.cart-count').forEach(el => {
+            el.textContent = count;
+        });
+        
+        // Atualiza total (se o elemento existir)
+        const totalElement = document.querySelector('.cart-total');
+        if (totalElement) {
+            // Formatação brasileira (R$ 1.234,56)
+            totalElement.textContent = `R$ ${total.toFixed(2)
+                .replace('.', ',')
+                .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')}`;
+        }
+    }
+
+    // ========== NOTIFICAÇÃO DE CARRINHO ==========
+    function showCartNotification(productName) {
+        const notification = document.createElement('div');
+        notification.className = 'cart-notification';
+        notification.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            ${productName} adicionado ao carrinho!
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Remove após 1.5 segundos (tempo para ver antes do redirecionamento)
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 1500);
+    }
+
     // ========== EVENTO DE CLIQUE NOS CARDS ==========
     document.querySelectorAll('.clickable-torta').forEach(card => {
         card.addEventListener('click', function(e) {
-            // Se clicou em um tamanho ou no botão "Ver Detalhes", não faz nada
+            // Ignora cliques nos elementos filhos
             if (e.target.closest('.premium-size-option, .premium-quick-view')) {
                 return;
             }
-            
-            // Adiciona ao carrinho se clicou em qualquer outra área do card
-            const productData = JSON.parse(this.dataset.product);
-            if (typeof window.addToCart === 'function') {
-                window.addToCart(productData);
-                this.classList.add('torta-clicked');
-                setTimeout(() => this.classList.remove('torta-clicked'), 500);
-            }
+    
+            const productId = this.dataset.id;
+            const product = products[productId];
+            if (!product) return;
+    
+            console.log('Clique no card - produto:', productId);
+    
+            // Adiciona apenas o produto básico (o tamanho será detectado na função addToCart)
+            addToCart({
+                id: productId,
+                name: product.name,
+                prices: product.prices,
+                image: product.images[0]
+            }, false);
+    
+            this.classList.add('torta-clicked');
+            setTimeout(() => this.classList.remove('torta-clicked'), 500);
+            localStorage.setItem('shouldOpenCart', 'true');
         });
     });
 
@@ -196,17 +401,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // ========== FUNÇÕES DO MODAL ==========
+    // ========== FUNÇÕES DO MODAL ==========
     function openProductModal(productId) {
         const product = products[productId];
         if (!product) return;
 
         // Atualiza os dados do modal
         const modal = document.querySelector('.premium-modal');
+        if (!modal) return; // Adicionada verificação de segurança
+        
         const modalTitle = modal.querySelector('.premium-modal-title');
         const mainImage = modal.querySelector('.premium-main-image');
         const thumbnails = modal.querySelectorAll('.premium-thumb');
         const addToCartBtn = modal.querySelector('.premium-add-to-cart');
 
+        // Verificação dos elementos essenciais
+        if (!modalTitle || !mainImage || !addToCartBtn) return;
+
+        // Atualiza conteúdo básico
         modalTitle.textContent = product.name;
         modalTitle.setAttribute('data-product-id', productId);
         addToCartBtn.setAttribute('data-product-id', productId);
@@ -220,14 +432,57 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Atualiza preços
-        modal.querySelector('#size-medio + label .premium-size-price').textContent = `R$ ${product.prices.medio}`;
-        modal.querySelector('#size-grande + label .premium-size-price').textContent = `R$ ${product.prices.grande}`;
+        // Atualiza preços COM VERIFICAÇÃO DE SEGURANÇA
+        const medioPriceElement = modal.querySelector('#size-medio + label .premium-size-price');
+        const grandePriceElement = modal.querySelector('#size-grande + label .premium-size-price');
+        
+        if (medioPriceElement) medioPriceElement.textContent = `R$ ${product.prices.medio}`;
+        if (grandePriceElement) grandePriceElement.textContent = `R$ ${product.prices.grande}`;
+        
+        // Atualiza preço no modal COM VERIFICAÇÃO
+        const modalPrice = document.querySelector('.premium-modal-price');
+        if (modalPrice) {
+            modalPrice.textContent = `R$ ${product.prices.medio}`;
+            
+            // Seleciona médio por padrão
+            const medioOption = modal.querySelector('#size-medio')?.parentElement;
+            if (medioOption) {
+                document.querySelectorAll('.premium-size-option').forEach(opt => opt.classList.remove('active'));
+                medioOption.classList.add('active');
+            }
+        }
         
         // Mostra o modal
         modalOverlay.style.display = 'flex';
         setTimeout(() => modalOverlay.style.opacity = '1', 10);
     }
+
+    // ========== EVENTO DE ADICIONAR DO MODAL ==========
+    document.querySelector('.premium-add-to-cart').addEventListener('click', function(e) {
+        e.stopPropagation(); // Impede a propagação para o card
+        
+        const modal = this.closest('.premium-modal');
+        const productId = modal.querySelector('.premium-modal-title').dataset.productId;
+        const product = products[productId];
+        if (!product) return;
+    
+        console.log('Clique no modal - produto:', productId);
+    
+        // Adiciona com flag fromModal=true
+        addToCart({
+            id: productId,
+            name: product.name,
+            prices: product.prices,
+            image: product.images[0]
+        }, true);
+    
+        showCartNotification(`${product.name}`);
+        setTimeout(() => {
+            localStorage.setItem('shouldOpenCart', 'true');
+            window.location.href = 'index.html';
+        }, 1500);
+    });
+    
 
     function closeModal() {
         modalOverlay.style.opacity = '0';
@@ -280,9 +535,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 1. Função para adicionar ao carrinho
             function addToCart(product) {
-                let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+                let cartItems = JSON.parse(localStorage.getItem('kideliCart')) || []; // Usar kideliCart consistentemente
                 const existingItem = cartItems.find(item => 
-                    item.id === product.id && item.size === product.size);
+                    item.id === product.id && (!product.size || item.size === product.size)
+                );
                 
                 if (existingItem) {
                     existingItem.quantity += 1;
@@ -290,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     cartItems.push(product);
                 }
                 
-                localStorage.setItem('cartItems', JSON.stringify(cartItems));
+                localStorage.setItem('kideliCart', JSON.stringify(cartItems)); // Sempre usar kideliCart
                 return true;
             }
             
@@ -310,21 +566,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-
-    function showCartNotification(productName) {
-        const notification = document.createElement('div');
-        notification.className = 'cart-notification show';
-        notification.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            ${productName} adicionado ao carrinho! Redirecionando...
-        `;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
     // ========== FUNÇÕES AUXILIARES ==========
     function showCartNotification(productName) {
         const notification = document.createElement('div');
@@ -402,5 +643,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Atualizar ano no footer
-    document.querySelector('.premium-footer-bottom p').innerHTML = `&copy; ${new Date().getFullYear()} KiDeli Premium. Todos os direitos reservados.`;
+    document.querySelector('.footer-bottom p').innerHTML = `&copy; ${new Date().getFullYear()} KiDeli Arte & Sabor. Todos os direitos reservados.`;
 });

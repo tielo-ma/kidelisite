@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Perfil - KiDeli</title>
+  <link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+  <div class="profile-container">
+    <!-- Cabeçalho -->
+    <header class="profile-header">
+      <h1>Meu Perfil</h1>
+      <button class="btn-edit" onclick="Profile.editProfile()">
+        <i class="fas fa-edit"></i> Editar
+      </button>
+    </header>
+
+    <!-- Seções -->
+    <div class="profile-sections">
+      <!-- Informações Pessoais -->
+      <section class="profile-section">
+        <h2><i class="fas fa-user"></i> Informações Pessoais</h2>
+        <div class="info-grid">
+          <div>
+            <label>Nome</label>
+            <p id="profile-name"></p>
+          </div>
+          <div>
+            <label>E-mail</label>
+            <p id="profile-email"></p>
+          </div>
+          <div>
+            <label>Celular</label>
+            <p id="profile-phone"></p>
+          </div>
+          <div>
+            <label>Data de Nascimento</label>
+            <p id="profile-birthday"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Programa de Fidelidade -->
+      <section class="profile-section">
+        <h2><i class="fas fa-award"></i> Programa de Fidelidade</h2>
+        <div class="fidelity-card">
+          <div class="fidelity-badge" id="fidelity-level"></div>
+          <div class="fidelity-info">
+            <div>
+              <label>Pontos</label>
+              <p id="fidelity-points"></p>
+            </div>
+            <div>
+              <label>Desconto</label>
+              <p id="fidelity-discount"></p>
+            </div>
+            <div>
+              <label>Multiplicador</label>
+              <p id="fidelity-multiplier"></p>
+            </div>
+          </div>
+          <div class="fidelity-progress">
+            <div class="progress-bar">
+              <div id="fidelity-progress" class="progress"></div>
+            </div>
+            <small>Progresso para o próximo nível</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- Histórico de Pedidos -->
+      <section class="profile-section">
+        <h2><i class="fas fa-history"></i> Histórico de Pedidos</h2>
+        <div id="order-history" class="order-history">
+          <!-- Preenchido pelo JavaScript -->
+        </div>
+      </section>
+
+      <!-- Formas de Pagamento -->
+      <section class="profile-section">
+        <h2><i class="fas fa-credit-card"></i> Formas de Pagamento</h2>
+        <div id="payment-methods" class="payment-methods">
+          <!-- Preenchido pelo JavaScript -->
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

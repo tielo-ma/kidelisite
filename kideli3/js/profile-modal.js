@@ -108,17 +108,97 @@ class ProfileModal {
   setupLogoutButton() {
     if (!this.logoutBtn) return;
 
-    // Remove qualquer listener anterior
+    // Solução definitiva - recria o elemento para evitar problemas com listeners
     const newLogoutBtn = this.logoutBtn.cloneNode(true);
     this.logoutBtn.parentNode.replaceChild(newLogoutBtn, this.logoutBtn);
     this.logoutBtn = newLogoutBtn;
 
+    // Listener direto sem bind para evitar problemas
     this.logoutBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      this.confirmLogout();
+      this.handleLogout();
     });
     
     console.log('[ProfileModal] Botão de logout configurado');
+  }
+
+  handleLogout() {
+    console.log('[ProfileModal] Iniciando processo de logout');
+    
+    // Cria modal de confirmação
+    const modal = document.createElement('div');
+    modal.className = 'confirmation-modal';
+    modal.style.display = 'flex';
+    modal.style.zIndex = '2001';
+    
+    modal.innerHTML = `
+      <div class="confirmation-content">
+        <h3><i class="fas fa-sign-out-alt"></i> Sair da Conta</h3>
+        <p>Tem certeza que deseja sair da sua conta?</p>
+        <div class="confirmation-buttons">
+          <button id="cancelLogoutBtn" class="btn-outline">Cancelar</button>
+          <button id="confirmLogoutBtn" class="btn-gold">Sair</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+
+    // Configura botão de confirmação
+    document.getElementById('confirmLogoutBtn').addEventListener('click', () => {
+      this.executeLogout();
+      modal.remove();
+    });
+
+    // Configura botão de cancelar
+    document.getElementById('cancelLogoutBtn').addEventListener('click', () => {
+      modal.remove();
+    });
+  }
+
+  executeLogout() {
+    console.log('[ProfileModal] Executando logout...');
+    
+    try {
+      // 1. Limpa todos os dados de autenticação
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_user');
+      localStorage.removeItem('kideliCart');
+      
+      // 2. Se existir Auth service, chama o logout
+      if (window.Auth && typeof window.Auth.logout === 'function') {
+        window.Auth.logout().then(() => {
+          this.finalizeLogout();
+        }).catch(error => {
+          console.error('Erro no Auth.logout:', error);
+          this.finalizeLogout();
+        });
+      } else {
+        this.finalizeLogout();
+      }
+    } catch (error) {
+      console.error('Erro durante logout:', error);
+      this.finalizeLogout();
+    }
+  }
+
+  finalizeLogout() {
+    console.log('[ProfileModal] Finalizando logout...');
+    
+    // 1. Fecha o modal de perfil
+    this.close();
+    
+    // 2. Atualiza o botão de login
+    const authButton = document.getElementById('authButton');
+    if (authButton) {
+      authButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+      authButton.classList.remove('logged-in');
+    }
+    
+    // 3. Recarrega a página após pequeno delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
   }
 
   confirmLogout() {

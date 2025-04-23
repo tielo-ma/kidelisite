@@ -1,6 +1,5 @@
 /* ========== ESTILOS BASE DO MODAL ========== */
 .profile-modal {
-  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -8,26 +7,49 @@
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 1000;
-  overflow-y: auto;
-  display: flex;
+  display: none;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  padding: 2rem;
+  overflow-y: auto;
 }
 
 .profile-modal-content {
-  position: relative;
-  background: #fff;
-  margin: 2% auto;
-  width: 90%;
+  background: white;
+  width: 100%;
   max-width: 900px;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  color: #333;
-  overflow: hidden;
-  animation: modalFadeIn 0.4s ease-out;
+  position: relative;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
+}
+
+.login-message {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.login-message i {
+  font-size: 3rem;
+  color: #d4af37;
+  margin-bottom: 1rem;
+}
+
+.login-message h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.login-message p {
+  color: #666;
+  margin-bottom: 1.5rem;
 }
 
 @keyframes modalFadeIn {
@@ -60,6 +82,11 @@
   border-radius: 50%;
 }
 
+.profile-modal-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 .profile-close:hover {
   color: #333;
   background: rgba(255, 255, 255, 0.9);
@@ -67,13 +94,10 @@
 
 /* ========== CABEÇALHO DO PERFIL ========== */
 .profile-header {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding: 25px;
-  align-items: center;
+  flex-shrink: 0; /* Não diminui */
+  padding: 30px;
   background: linear-gradient(135deg, #d4af37 0%, #f9d423 100%);
-  color: #2a2a2a;
+  position: relative;
 }
 
 .profile-avatar {
@@ -177,10 +201,7 @@
 
 /* ========== ABAS DE NAVEGAÇÃO ========== */
 .profile-tabs {
-  display: flex;
-  border-bottom: 1px solid #eee;
-  background-color: #f9f9f9;
-  overflow-x: auto;
+  flex-shrink: 0; /* Não diminui */
 }
 
 .profile-tab {
@@ -192,9 +213,10 @@
   font-weight: 500;
   color: #666;
   border-bottom: 3px solid transparent;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   white-space: nowrap;
   min-width: 120px;
+  position: relative;
 }
 
 .profile-tab:hover {
@@ -209,6 +231,19 @@
   background-color: white;
 }
 
+.profile-tab.active:after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 3px;
+  background: #d4af37;
+  border-radius: 3px;
+}
+
+
 .profile-tab i {
   margin-right: 8px;
   font-size: 16px;
@@ -216,13 +251,14 @@
 
 /* ========== CONTEÚDO DAS ABAS ========== */
 .profile-tab-content {
-  padding: 30px;
-  overflow-y: auto;
-  flex: 1;
+  flex: 1; /* Ocupa todo espaço disponível */
+  overflow-y: auto; /* Habilita rolagem */
+  padding: 25px;
+  -webkit-overflow-scrolling: touch; /* Rolagem suave no iOS */
 }
 
 .tab-pane {
-  display: none;
+  min-height: min-content;
 }
 
 .tab-pane.active {
@@ -303,6 +339,28 @@
   background-color: #f5f5f5;
   border-color: #d4af37;
   color: #d4af37;
+}
+
+/* Botões premium */
+.btn-gold {
+  background: linear-gradient(135deg, #d4af37 0%, #f9d423 100%);
+  color: #2a2a2a;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 20px auto 0;
+}
+
+.btn-gold:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(212, 175, 55, 0.4);
 }
 
 /* Barra de Progresso de Fidelidade */
@@ -638,6 +696,55 @@
   border-top: 4px solid #f1c40f;
 }
 
+.benefit-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.benefit-option {
+  border: 2px solid #eee;
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.benefit-option.selected {
+  border-color: #d4af37;
+  background-color: rgba(212, 175, 55, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+}
+
+.benefit-option i {
+  font-size: 2rem;
+  color: #d4af37;
+  margin-bottom: 1rem;
+}
+
+.benefit-option h5 {
+  margin: 0.5rem 0;
+  color: #2a2a2a;
+}
+
+.benefit-option p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.birthday-benefit {
+  background-color: #fff9e6;
+  border-radius: 10px;
+  padding: 2rem;
+  margin-top: 2rem;
+  border-left: 4px solid #d4af37;
+}
+
+
 .benefit-icon {
   width: 60px;
   height: 60px;
@@ -694,6 +801,74 @@
   border-radius: 4px;
 }
 
+/* Modal de confirmação */
+.confirmation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.confirmation-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.confirmation-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: flex-end;
+}
+
+.notification-modal {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4CAF50;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 5px;
+  z-index: 1100;
+  animation: slideIn 0.3s;
+}
+
+.notification-modal.fade-out {
+  animation: fadeOut 0.5s;
+}
+
+@keyframes slideIn {
+  from { bottom: -50px; opacity: 0; }
+  to { bottom: 2rem; opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .profile-modal {
+    padding: 1rem;
+  }
+  
+  .benefit-options {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Animações */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -708,9 +883,7 @@
   }
   
   .profile-header {
-    flex-direction: column;
-    text-align: center;
-    padding: 25px 20px;
+    flex-shrink: 0; /* Impede que o cabeçalho diminua */
   }
   
   .profile-avatar {
@@ -723,8 +896,9 @@
   }
   
   .profile-tabs {
-    flex-wrap: wrap;
+    flex-shrink: 0; /* Impede que as abas diminuam */
   }
+  
   
   .profile-tab {
     flex: 1 0 50%;
@@ -785,4 +959,46 @@
   .order-status {
     margin-top: 10px;
   }
+}
+/* Formulários de edição */
+.edit-form, .add-card-form {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  border: 1px solid #eee;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-group input, 
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
 }

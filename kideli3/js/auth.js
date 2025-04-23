@@ -1,524 +1,853 @@
+// Sistema de Autenticação e Fidelidade
+console.log('[Auth] Inicializando sistema...');
+
+// Constantes
+const FIDELIDADE = {
+  niveis: {
+    BRONZE: { minPontos: 0, maxPontos: 999, desconto: 0, multiplicador: 1, next: 'PRATA' },
+    PRATA: { minPontos: 1000, maxPontos: 4999, desconto: 5, multiplicador: 1.2, next: 'OURO' },
+    OURO: { minPontos: 5000, maxPontos: 9999, desconto: 10, multiplicador: 1.5, next: 'DIAMANTE' },
+    DIAMANTE: { minPontos: 15000, maxPontos: Infinity, desconto: 15, multiplicador: 2 }
+  },
+  BONUS_ANIVERSARIO: 1000,
+  PONTOS_POR_REAL: 10
+};
+
+const STORAGE_KEYS = {
+  USERS: 'app_users',
+  TOKEN: 'auth_token',
+  USER: 'auth_user'
+};
+
+const CONFIG = {
+  CEP_API: 'https://viacep.com.br/ws/{cep}/json/',
+  CIDADE_PADRAO: 'Natal',
+  UF_PADRAO: 'RN',
+  SENHA_MIN_LENGTH: 6
+};
+
+// Utilitários
+const DOM = {
+  get(selector, required = false) {
+    const element = document.querySelector(selector);
+    if (!element && required) {
+      console.error(`Elemento não encontrado: ${selector}`);
+      throw new Error(`Elemento ${selector} não encontrado`);
+    }
+    return element;
+  },
+  
+  setValue(selector, value) {
+    const element = this.get(selector);
+    if (element) element.value = value;
+  },
+  
+  getFormValue(form, selector) {
+    const element = form.querySelector(selector);
+    return element ? element.value.trim() : null;
+  }
+};
+
+const UI = {
+  showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.classList.add('fade-out');
+      setTimeout(() => notification.remove(), 500);
+    }, 3000);
+  },
+  
+  formatDate(dateString) {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  }
+};
+
+const Validators = {
+  email(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  },
+  
+  password(password) {
+    return password.length >= CONFIG.SENHA_MIN_LENGTH;
+  }
+};
+
+// Gerenciamento de Usuários
+const UserService = {
+  getUsers() {
+    const usersJSON = localStorage.getItem(STORAGE_KEYS.USERS);
+    return usersJSON ? JSON.parse(usersJSON) : [];
+  },
+  
+  getUserById(id) {
+    return this.getUsers().find(u => u.id === id);
+  },
+  
+  getUserByEmail(email) {
+    return this.getUsers().find(u => u.email === email);
+  },
+  
+  saveUser(user) {
+    const users = this.getUsers();
+    const index = users.findIndex(u => u.id === user.id);
+    
+    if (index >= 0) {
+      users[index] = user;
+    } else {
+      users.push(user);
+    }
+    
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+  },
+  
+  calculateLevel(points) {
+    const levels = Object.entries(FIDELIDADE.niveis).reverse();
+    for (const [level, config] of levels) {
+      if (points >= config.minPontos) return level;
+    }
+    return 'BRONZE';
+  }
+};
+
+// Autenticação
+const AuthService = {
+  login(user) {
+    sessionStorage.setItem(STORAGE_KEYS.TOKEN, user.id);
+    sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    this.updateAuthUI();
+    
+    if (window.profileModal) {
+      window.profileModal.open();
+    } else {
+      window.profileModal = new ProfileModal();
+    }
+  },
+  
+  logout() {
+    sessionStorage.removeItem(STORAGE_KEYS.TOKEN);
+    sessionStorage.removeItem(STORAGE_KEYS.USER);
+    this.updateAuthUI();
+    UI.showNotification('Você foi desconectado', 'info');
+  },
+  
+  getLoggedUser() {
+    const userJson = sessionStorage.getItem(STORAGE_KEYS.USER);
+    return userJson ? JSON.parse(userJson) : null;
+  },
+  
+  isLoggedIn() {
+    return sessionStorage.getItem(STORAGE_KEYS.TOKEN) !== null;
+  },
+  
+  updateAuthUI() {
+    const authButton = DOM.get('#authButton');
+    if (!authButton) return;
+    
+    if (this.isLoggedIn()) {
+      authButton.innerHTML = '<i class="fas fa-user"></i> Meu Perfil';
+      authButton.classList.add('logged-in');
+    } else {
+      authButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+      authButton.classList.remove('logged-in');
+    }
+  }
+};
+
+// Formulários
+const FormHandlers = {
+  setupLoginForm() {
+    const form = DOM.get('#loginForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await this.handleLogin(form);
+    });
+  },
+  
+  async handleLogin(form) {
+    try {
+      const email = DOM.getFormValue(form, 'input[type="email"]');
+      const password = DOM.getFormValue(form, 'input[type="password"]');
+      
+      if (!email || !password) throw new Error('Preencha todos os campos');
+      if (!Validators.email(email)) throw new Error('Email inválido');
+      
+      const user = UserService.getUserByEmail(email);
+      if (!user) throw new Error('Email não cadastrado');
+      if (user.password !== password) throw new Error('Senha incorreta');
+      
+      AuthService.login(user);
+      UI.showNotification('Login realizado!', 'success');
+      ModalService.closeAuthModal();
+      
+    } catch (error) {
+      UI.showNotification(error.message, 'error');
+    }
+  },
+  
+  setupRegisterForm() {
+    const form = DOM.get('#registerForm');
+    if (!form) return;
+    
+    this.setupPhoneMask(form);
+    this.setupCEPMask(form);
+    
+    DOM.get('#buscarCep')?.addEventListener('click', this.handleCEP);
+    
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handleRegistration(form);
+    });
+  },
+  
+  handleRegistration(form) {
+    try {
+      const formData = {
+        id: Date.now().toString(),
+        nome: DOM.getFormValue(form, 'input[placeholder="Nome completo*"]'),
+        email: DOM.getFormValue(form, 'input[type="email"]'),
+        password: DOM.getFormValue(form, 'input[type="password"]'),
+        celular: DOM.getFormValue(form, 'input[type="tel"]'),
+        dataNascimento: DOM.getFormValue(form, 'input[type="date"]'),
+        cep: DOM.getFormValue(form, '#cep'),
+        rua: DOM.getFormValue(form, '#rua'),
+        numero: DOM.getFormValue(form, 'input[placeholder="Número*"]'),
+        complemento: DOM.getFormValue(form, 'input[placeholder="Complemento"]'),
+        bairro: DOM.getFormValue(form, '#bairro'),
+        referencia: DOM.getFormValue(form, 'input[placeholder="Ponto de referência"]'),
+        pontos: 0,
+        nivelFidelidade: 'BRONZE',
+        historicoPedidos: [],
+        cartoes: []
+      };
+      
+      // Validação
+      if (!formData.nome || !formData.email || !formData.password || !formData.numero) {
+        throw new Error('Preencha todos os campos obrigatórios');
+      }
+      
+      if (!Validators.email(formData.email)) throw new Error('Email inválido');
+      if (!Validators.password(formData.password)) {
+        throw new Error(`A senha deve ter pelo menos ${CONFIG.SENHA_MIN_LENGTH} caracteres`);
+      }
+      
+      if (UserService.getUserByEmail(formData.email)) {
+        throw new Error('Email já cadastrado');
+      }
+      
+      UserService.saveUser(formData);
+      AuthService.login(formData);
+      UI.showNotification('Cadastro realizado!', 'success');
+      ModalService.switchTab('login');
+      form.reset();
+      
+    } catch (error) {
+      UI.showNotification(error.message, 'error');
+    }
+  },
+  
+  async handleCEP() {
+    try {
+      const cepField = DOM.get('#cep', true);
+      const cep = cepField.value.replace(/\D/g, '');
+      
+      if (cep.length !== 8) throw new Error('CEP inválido (8 dígitos)');
+      
+      const response = await fetch(CONFIG.CEP_API.replace('{cep}', cep));
+      const data = await response.json();
+      
+      if (data.erro) throw new Error('CEP não encontrado');
+      
+      DOM.setValue('#rua', data.logradouro || '');
+      DOM.setValue('#bairro', data.bairro || '');
+      DOM.setValue('#cidade', data.localidade || CONFIG.CIDADE_PADRAO);
+      DOM.setValue('#uf', data.uf || CONFIG.UF_PADRAO);
+      
+    } catch (error) {
+      UI.showNotification(error.message, 'error');
+    }
+  },
+  
+  setupPhoneMask(form) {
+    const phoneField = form.querySelector('input[type="tel"]');
+    if (phoneField) {
+      phoneField.addEventListener('input', (e) => {
+        e.target.value = e.target.value
+          .replace(/\D/g, '')
+          .replace(/(\d{2})(\d)/, '($1) $2')
+          .replace(/(\d{5})(\d)/, '$1-$2')
+          .substring(0, 15);
+      });
+    }
+  },
+  
+  setupCEPMask(form) {
+    const cepField = form.querySelector('#cep');
+    if (cepField) {
+      cepField.addEventListener('input', (e) => {
+        e.target.value = e.target.value
+          .replace(/\D/g, '')
+          .replace(/(\d{5})(\d)/, '$1-$2')
+          .substring(0, 9);
+      });
+    }
+  }
+};
+
+// Modais
+const ModalService = {
+  openAuthModal(tab = 'login') {
+    const modal = DOM.get('#authModal', true);
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    this.switchTab(tab);
+  },
+  
+  closeAuthModal() {
+    const modal = DOM.get('#authModal');
+    if (modal) {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+      modal.querySelectorAll('form').forEach(form => form.reset());
+    }
+  },
+  
+  switchTab(tabName) {
+    const validTabs = ['login', 'register'];
+    if (!validTabs.includes(tabName)) return;
+    
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.tab === tabName);
+    });
+    
+    document.querySelectorAll('.auth-form').forEach(form => {
+      form.classList.toggle('active', form.id === `${tabName}Form`);
+    });
+    
+    setTimeout(() => {
+      const firstInput = document.querySelector(`#${tabName}Form input`);
+      if (firstInput) firstInput.focus();
+    }, 100);
+  },
+  
+  setupTabs() {
+    const tabs = document.querySelectorAll('.auth-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+    });
+  },
+  
+  setupCloseButton() {
+    DOM.get('.auth-close')?.addEventListener('click', this.closeAuthModal);
+  }
+};
+
+// Fidelidade
+const LoyaltyService = {
+  addPoints(userId, purchaseValue) {
+    const user = UserService.getUserById(userId);
+    if (!user) return 0;
+    
+    const pointsEarned = Math.floor(purchaseValue * FIDELIDADE.PONTOS_POR_REAL);
+    user.pontos += pointsEarned;
+    user.nivelFidelidade = UserService.calculateLevel(user.pontos);
+    UserService.saveUser(user);
+    
+    return pointsEarned;
+  },
+  
+  checkBirthdayBonus(user) {
+    if (!user.dataNascimento) return false;
+    
+    const today = new Date();
+    const birthDate = new Date(user.dataNascimento);
+    
+    if (today.getMonth() === birthDate.getMonth() && today.getDate() === birthDate.getDate()) {
+      const bonus = FIDELIDADE.BONUS_ANIVERSARIO;
+      user.pontos += bonus;
+      user.nivelFidelidade = UserService.calculateLevel(user.pontos);
+      UserService.saveUser(user);
+      return { granted: true, bonus };
+    }
+    return { granted: false };
+  }
+};
+
+// Inicialização
+function initializeAuth() {
+  try {
+    // Configura botão de autenticação
+    const authButton = DOM.get('#authButton');
+    if (authButton) {
+      authButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (AuthService.isLoggedIn()) {
+          if (!window.profileModal) window.profileModal = new ProfileModal();
+          window.profileModal.open();
+        } else {
+          ModalService.openAuthModal('login');
+        }
+      });
+    }
+    
+    AuthService.updateAuthUI();
+    ModalService.setupCloseButton();
+    ModalService.setupTabs();
+    FormHandlers.setupLoginForm();
+    FormHandlers.setupRegisterForm();
+    
+  } catch (error) {
+    console.error('Falha na inicialização:', error);
+    UI.showNotification('Erro ao carregar autenticação', 'error');
+  }
+}
+
+// Interface Pública
+window.Auth = {
+  open: ModalService.openAuthModal,
+  close: ModalService.closeAuthModal,
+  switchTab: ModalService.switchTab,
+  logout: AuthService.logout,
+  getUser: AuthService.getLoggedUser,
+  isLoggedIn: AuthService.isLoggedIn,
+  addPoints: LoyaltyService.addPoints,
+  checkBirthdayBonus: LoyaltyService.checkBirthdayBonus
+};
+
+// Inicializa quando o DOM estiver pronto
+if (document.readyState === 'complete') {
+  initializeAuth();
+} else {
+  document.addEventListener('DOMContentLoaded', initializeAuth);
+}
+
+// ProfileModal (versão simplificada)
 class ProfileModal {
   constructor() {
-    this.modal = document.getElementById('profileModal');
-    this.tabs = document.querySelectorAll('.profile-tab');
-    this.tabPanes = document.querySelectorAll('.tab-pane');
+    this.modal = DOM.get('#profileModal');
+    this.isOpen = false;
+    this.currentUser = null;
+    
     if (!this.modal) {
-      console.error('Modal não encontrado - verifique o ID no HTML');
+      console.error('[ProfileModal] Elemento não encontrado');
       return;
     }
 
+    this.initElements();
+    this.setupEventListeners();
+  }
+
+  initElements() {
     this.closeButton = this.modal.querySelector('.profile-close');
+    this.tabs = this.modal.querySelectorAll('.profile-tab');
+    this.tabPanes = this.modal.querySelectorAll('.tab-pane');
     this.profileContent = this.modal.querySelector('.profile-modal-content');
-    
-    console.log('Elementos do modal:', {
-      modal: this.modal,
-      closeButton: this.closeButton,
-      profileContent: this.profileContent
-    });
-
-    this.init();
+    this.loginMessage = this.createLoginMessage();
   }
 
-  initTabs() {
-    this.tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        // Remove classe ativa de todas as abas
-        this.tabs.forEach(t => t.classList.remove('active'));
-        // Adiciona classe ativa apenas na aba clicada
-        tab.classList.add('active');
-        
-        // Esconde todos os conteúdos
-        this.tabPanes.forEach(pane => {
-          pane.classList.remove('active');
-          pane.style.display = 'none';
-        });
-        
-        // Mostra apenas o conteúdo correspondente
-        const targetPane = document.getElementById(tab.dataset.tab + '-content');
-        if (targetPane) {
-          targetPane.style.display = 'block';
-          setTimeout(() => {
-            targetPane.classList.add('active');
-          }, 10);
-        }
-      });
-    });
+  createLoginMessage() {
+    const message = document.createElement('div');
+    message.id = 'login-required-message';
+    message.className = 'login-message';
+    message.innerHTML = `
+            <div class="login-message-content">
+        <i class="fas fa-lock"></i>
+        <h3>Acesso Restrito</h3>
+        <p>Para visualizar seu perfil, faça login ou cadastre-se</p>
+        <button id="goToLoginBtn" class="btn-gold">
+          <i class="fas fa-sign-in-alt"></i> Ir para Login
+        </button>
+      </div>
+    `;
+    this.modal.appendChild(message);
+    return message;
   }
 
-
-  init() {
+  setupEventListeners() {
     this.closeButton?.addEventListener('click', () => this.close());
-    
     this.modal.addEventListener('click', (e) => {
       if (e.target === this.modal) this.close();
     });
-    this.setupLogoutButton();
-    this.setupLoginMessage();
-    this.setupTabs();
+
+    DOM.get('#goToLoginBtn')?.addEventListener('click', () => {
+      this.close();
+      window.Auth.open('login');
+    });
+
+    this.tabs.forEach(tab => {
+      tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+    });
   }
 
-  setupLoginMessage() {
-    if (!this.modal.querySelector('#login-required-message')) {
-      const loginHTML = `
-        <div id="login-required-message" class="login-message">
-          <h3>Login necessário</h3>
-          <p>Por favor, faça login para acessar seu perfil</p>
-          <button id="goToLoginBtn" class="btn">Ir para Login</button>
-        </div>
-      `;
-      this.modal.insertAdjacentHTML('afterbegin', loginHTML);
-      
-      document.getElementById('goToLoginBtn')?.addEventListener('click', () => {
-        this.close();
-        document.getElementById('authModal').style.display = 'block';
-      });
-    }
-  }
-
-  updateClientBadge() {
-    const user = JSON.parse(sessionStorage.getItem('auth_user') || '{}');
-    const badge = document.getElementById('client-name-badge');
-    if (badge && user.nome) {
-        // Pega as iniciais do nome (2 primeiras letras)
-        const initials = user.nome.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-        badge.textContent = initials + '+'; // Formato AA+
-    }
-  }
-
-  setupLogoutButton() {
-      const logoutBtn = document.getElementById('logout-btn');
-      if (logoutBtn) {
-          logoutBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-              if (confirm('Deseja realmente sair da sua conta?')) {
-                  // Chama a função de logout do auth.js
-                  if (window.Auth && window.Auth.logout) {
-                      window.Auth.logout();
-                  }
-                  this.close();
-                  // Redireciona para a página inicial ou recarrega
-                  window.location.reload();
-              }
-          });
-      }
-  }
-  setupTabs() {
-    try {
-      const tabs = this.modal.querySelectorAll('.profile-tab');
-      const tabContents = this.modal.querySelectorAll('.profile-tab-content');
-      
-      tabs.forEach(tab => {
-        tab?.addEventListener('click', (e) => {
-          e.preventDefault();
-          tabs.forEach(t => t?.classList?.remove('active'));
-          tab.classList.add('active');
-          
-          const contentId = tab.getAttribute('data-tab');
-          if (contentId) {
-            tabContents.forEach(content => {
-              content?.classList?.remove('active');
-              if (content.id === contentId) {
-                content.classList.add('active');
-              }
-            });
-          }
-        });
-      });
-
-      // Ativa primeira aba se nenhuma estiver ativa
-      if (tabs.length > 0 && !this.modal.querySelector('.profile-tab.active')) {
-        tabs[0].classList.add('active');
-        const firstContentId = tabs[0].getAttribute('data-tab');
-        if (firstContentId) {
-          this.modal.querySelector(`#${firstContentId}`)?.classList.add('active');
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao configurar abas:', error);
+  async open() {
+    if (this.isOpen) return;
+    
+    this.modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    this.isOpen = true;
+    
+    if (AuthService.isLoggedIn()) {
+      await this.loadUserData();
+      this.showProfileContent();
+    } else {
+      this.showLoginMessage();
     }
   }
 
   async loadUserData() {
     try {
-      const userId = sessionStorage.getItem('userId');
-      const token = sessionStorage.getItem('token');
+      this.currentUser = AuthService.getLoggedUser();
+      if (!this.currentUser) throw new Error('Usuário não encontrado');
       
-      if (!userId || !token) {
-        console.warn('Usuário não autenticado');
-        return;
-      }
-      
-      // Simulação de API - substitua por sua chamada real
-      console.log('Simulando chamada API...');
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Dados mockados para exemplo
-      this.currentUser = {
-        id: userId,
-        nome: "João Silva",
-        email: "joao@exemplo.com",
-        celular: "(84) 99999-9999",
-        dataNascimento: "1990-01-15",
-        pontos: 1250,
-        nivelFidelidade: "PRATA",
-        historicoPedidos: [
-          {
-            id: "KD20230001",
-            data: "2023-06-10",
-            status: "ENTREGUE",
-            total: 120.00,
-            pontosGanhos: 1200,
-            produtos: [
-              { nome: "Torta de Morango", quantidade: 1, imagem: "./assets/image/red.jpeg" }
-            ]
-          }
-        ],
-        cartoes: [
-          {
-            id: "card1",
-            bandeira: "visa",
-            ultimosDigitos: "4242",
-            nome: "JOÃO SILVA",
-            validade: "12/25"
-          }
-        ]
-      };
-
       this.renderUserData();
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      this.showErrorMessage('Erro ao carregar perfil');
+      console.error('[ProfileModal] Erro ao carregar dados:', error);
+      UI.showNotification('Erro ao carregar perfil', 'error');
     }
   }
 
   renderUserData() {
     if (!this.currentUser) return;
 
-    const safeSetContent = (id, content) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = content || 'Não informado';
-    };
-    this.updateClientBadge();
     // Dados básicos
-    safeSetContent('profile-modal-name', this.currentUser.nome);
-    safeSetContent('profile-modal-email', this.currentUser.email);
-    safeSetContent('profile-phone', this.currentUser.celular);
-    safeSetContent('profile-birthdate', this.formatDate(this.currentUser.dataNascimento));
+    this.setTextContent('profile-modal-name', this.currentUser.nome);
+    this.setTextContent('profile-modal-email', this.currentUser.email);
+    this.setTextContent('profile-phone', this.currentUser.celular);
+    this.setTextContent('profile-birthdate', UI.formatDate(this.currentUser.dataNascimento));
+    
+    // Endereço
+    const endereco = this.currentUser.rua ? 
+      `${this.currentUser.rua}, ${this.currentUser.numero || 'S/N'}, ${this.currentUser.bairro}, ${this.currentUser.cidade || CONFIG.CIDADE_PADRAO}-${this.currentUser.uf || CONFIG.UF_PADRAO}` : 
+      'Não cadastrado';
+    this.setTextContent('profile-address', endereco);
 
     // Fidelidade
-    safeSetContent('profile-tier', this.currentUser.nivelFidelidade);
-    safeSetContent('profile-points', `${this.currentUser.pontos} pontos`);
-
-    this.renderFidelityProgress(this.currentUser.nivelFidelidade, this.currentUser.pontos);
-    this.renderOrderHistory(this.currentUser.historicoPedidos);
-    this.renderPaymentMethods(this.currentUser.cartoes);
-    this.renderBenefits(this.currentUser.nivelFidelidade, this.currentUser.pontos);
-
-    // Informações básicas
-    this.setContent('profile-modal-name', this.currentUser.nome);
-    this.setContent('profile-modal-email', this.currentUser.email);
-    this.setContent('profile-phone', this.currentUser.celular);
-    this.setContent('profile-birthdate', this.formatDate(this.currentUser.dataNascimento));
-    this.setContent('profile-address', this.formatAddress(this.currentUser.endereco));
-
-    // Sistema de fidelidade
     this.renderFidelitySystem();
     
-    // Abas específicas
-    this.renderOrders();
-    this.renderPayments();
-    this.renderBenefits();
+    // Atualiza badge do usuário
+    this.updateUserBadge();
+  }
+
+  setTextContent(elementId, text) {
+    const element = DOM.get(elementId);
+    if (element) element.textContent = text || 'Não informado';
   }
 
   renderFidelitySystem() {
     const { nivelFidelidade, pontos } = this.currentUser;
-    const levels = {
-      BRONZE: { min: 0, next: 'PRATA', nextMin: 1000, discount: 0 },
-      PRATA: { min: 1000, next: 'OURO', nextMin: 5000, discount: 5 },
-      OURO: { min: 5000, next: 'DIAMANTE', nextMin: 15000, discount: 10 },
-      DIAMANTE: { min: 15000, next: null, discount: 15 }
-    };
-
-    const currentLevel = levels[nivelFidelidade] || levels.BRONZE;
+    const currentLevel = FIDELIDADE.niveis[nivelFidelidade] || FIDELIDADE.niveis.BRONZE;
 
     // Atualiza badge
-    const badge = document.getElementById('vip-level-badge');
+    const badge = DOM.get('#vip-level-badge');
     if (badge) {
       badge.className = `vip-badge ${nivelFidelidade.toLowerCase()}`;
       badge.querySelector('#vip-level').textContent = nivelFidelidade;
     }
 
     // Barra de progresso
-    const progressBar = document.getElementById('loyalty-progress-bar');
+    const progressBar = DOM.get('#loyalty-progress-bar');
     if (progressBar) {
       const progress = currentLevel.next 
-        ? ((pontos - currentLevel.min) / (currentLevel.nextMin - currentLevel.min)) * 100
+        ? ((pontos - currentLevel.minPontos) / 
+           (FIDELIDADE.niveis[currentLevel.next].minPontos - currentLevel.minPontos)) * 100
         : 100;
+      
       progressBar.style.width = `${Math.min(100, progress)}%`;
     }
 
-    // Labels
-    this.setContent('current-level', nivelFidelidade);
-    this.setContent('current-discount', `${currentLevel.discount}% de desconto`);
+    // Informações de nível
+    this.setTextContent('profile-tier', nivelFidelidade);
+    this.setTextContent('profile-points', `${pontos} pontos`);
+    this.setTextContent('current-discount', `Desconto: ${currentLevel.desconto}%`);
     
     if (currentLevel.next) {
-      this.setContent('next-level-label', 
-        `Próximo nível: ${currentLevel.next} (faltam ${currentLevel.nextMin - pontos} pontos)`);
+      const pointsNeeded = FIDELIDADE.niveis[currentLevel.next].minPontos - pontos;
+      this.setTextContent('next-level-label', 
+        `Próximo: ${currentLevel.next} (faltam ${pointsNeeded} pontos)`);
     } else {
-      this.setContent('next-level-label', 'Nível máximo alcançado!');
+      this.setTextContent('next-level-label', 'Nível máximo alcançado!');
     }
   }
 
+  updateUserBadge() {
+    const badge = DOM.get('#client-name-badge');
+    if (badge && this.currentUser.nome) {
+      const initials = this.currentUser.nome
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+      badge.textContent = initials;
+    }
+  }
+
+  showProfileContent() {
+    this.profileContent.style.display = 'block';
+    this.loginMessage.style.display = 'none';
+    this.switchTab('overview');
+  }
+
+  showLoginMessage() {
+    this.profileContent.style.display = 'none';
+    this.loginMessage.style.display = 'flex';
+  }
+
+  switchTab(tabId) {
+    this.tabs.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.tab === tabId);
+    });
+    
+    this.tabPanes.forEach(pane => {
+      const isActive = pane.id === `${tabId}-content`;
+      pane.style.display = isActive ? 'block' : 'none';
+      if (isActive) setTimeout(() => pane.classList.add('active'), 10);
+      else pane.classList.remove('active');
+    });
+
+    // Atualiza conteúdo específico da aba
+    if (tabId === 'orders') this.renderOrders();
+    else if (tabId === 'payments') this.renderPayments();
+    else if (tabId === 'benefits') this.renderBenefits();
+  }
+
   renderOrders() {
-    const container = document.getElementById('orders-list');
-    if (!container || !this.currentUser.historicoPedidos) return;
+    if (!this.currentUser?.historicoPedidos) return;
+    
+    const container = DOM.get('#orders-list');
+    if (!container) return;
 
     const orders = this.currentUser.historicoPedidos.map(order => ({
       ...order,
       statusText: this.getOrderStatusText(order.status),
-      statusClass: order.status.toLowerCase()
+      statusClass: order.status.toLowerCase(),
+      formattedDate: UI.formatDate(order.data),
+      formattedTotal: order.total.toLocaleString('pt-BR', { 
+        style: 'currency', 
+        currency: 'BRL' 
+      })
     }));
 
-    container.innerHTML = orders.length ? orders.map(order => `
+    container.innerHTML = orders.length ? 
+      orders.map(order => this.createOrderCard(order)).join('') : 
+      '<div class="empty-state">Nenhum pedido encontrado</div>';
+
+    this.setupOrderFilters();
+  }
+
+  createOrderCard(order) {
+    return `
       <div class="order-card ${order.statusClass}">
         <div class="order-header">
           <span>Pedido #${order.id}</span>
           <span class="order-status">${order.statusText}</span>
         </div>
-        <div class="order-date">${this.formatDate(order.data)}</div>
+        <div class="order-date">${order.formattedDate}</div>
         <div class="order-products">
           ${order.produtos.slice(0, 3).map(p => `
             <div class="product">
-              <img src="${p.imagem || './assets/image/default-product.png'}" alt="${p.nome}">
+              <img src="./assets/image/red.jpeg" alt="${p.nome}">
               <span>${p.nome} (${p.quantidade}x)</span>
             </div>
           `).join('')}
         </div>
         <div class="order-footer">
-          <span class="order-total">R$ ${order.total.toFixed(2)}</span>
-          ${order.pontosGanhos ? `<span class="order-points">+${order.pontosGanhos} pts</span>` : ''}
+          <span class="order-total">${order.formattedTotal}</span>
+          ${order.pontosGanhos ? `
+            <span class="order-points">
+              <i class="fas fa-coins"></i> +${order.pontosGanhos} pts
+            </span>
+          ` : ''}
         </div>
       </div>
-    `).join('') : '<div class="empty-orders">Nenhum pedido encontrado</div>';
+    `;
+  }
 
-    // Configura filtros
-    this.setupOrderFilters();
+  getOrderStatusText(status) {
+    const statusMap = {
+      'ENTREGUE': 'Entregue',
+      'PROCESSANDO': 'Em processamento',
+      'CANCELADO': 'Cancelado',
+      'ENVIADO': 'Enviado'
+    };
+    return statusMap[status] || status;
+  }
+
+  setupOrderFilters() {
+    const timeFilter = DOM.get('#order-time-filter');
+    const statusFilter = DOM.get('#order-status-filter');
+    
+    timeFilter?.addEventListener('change', () => this.filterOrders());
+    statusFilter?.addEventListener('change', () => this.filterOrders());
+  }
+
+  filterOrders() {
+    console.log('Filtrando pedidos...');
+    // Implementação do filtro aqui
   }
 
   renderPayments() {
-    const container = document.getElementById('payment-methods-list');
+    if (!this.currentUser?.cartoes) return;
+    
+    const container = DOM.get('#payment-methods-list');
     if (!container) return;
 
-    // Cartões cadastrados
-    container.innerHTML = this.currentUser.cartoes?.length ? this.currentUser.cartoes.map(card => `
-      <div class="payment-card">
-        <i class="fab fa-cc-${card.bandeira.toLowerCase()}"></i>
-        <div class="card-info">
-          <div class="card-number">•••• •••• •••• ${card.ultimosDigitos}</div>
-          <div class="card-details">
-            <span class="card-name">${card.nome}</span>
-            <span class="card-expiry">Expira ${card.validade}</span>
-          </div>
-        </div>
-        <button class="remove-card" data-id="${card.id}">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
-    `).join('') : '<div class="empty-message">Nenhum cartão cadastrado</div>';
+    container.innerHTML = this.currentUser.cartoes.length ? 
+      this.currentUser.cartoes.map(card => this.createPaymentCard(card)).join('') : 
+      '<div class="empty-state">Nenhum cartão cadastrado</div>';
 
-    // Histórico de pagamentos
-    this.renderPaymentHistory();
+    this.setupPaymentActions();
   }
 
-  renderPaymentHistory() {
-    const container = document.getElementById('payment-history');
-    if (!container) return;
-
-    const payments = this.currentUser.historicoPagamentos || [];
-    
-    container.innerHTML = payments.length ? payments.map(payment => `
-      <div class="payment-item">
-        <div class="payment-date">${this.formatDate(payment.data)}</div>
-        <div class="payment-info">
-          <span class="payment-method">${this.getPaymentMethodIcon(payment.metodo)} ${payment.metodo}</span>
-          <span class="payment-amount">R$ ${payment.valor.toFixed(2)}</span>
+  createPaymentCard(card) {
+    return `
+      <div class="payment-card">
+        <i class="fab fa-cc-${card.bandeira.toLowerCase()}"></i>
+        <div class="card-details">
+          <div class="card-number">•••• •••• •••• ${card.ultimosDigitos}</div>
+          <div class="card-info">
+            <span class="card-name">${card.nome}</span>
+            <span class="card-expiry">Validade ${card.validade}</span>
+          </div>
         </div>
-        <div class="payment-order">Pedido #${payment.pedidoId}</div>
-        <div class="payment-status ${payment.status.toLowerCase()}">${payment.status}</div>
+        <button class="btn-icon remove-card" data-id="${card.id}">
+          <i class="fas fa-trash-alt"></i>
+        </button>
       </div>
-    `).join('') : '<div class="empty-message">Nenhum pagamento registrado</div>';
+    `;
+  }
+
+  setupPaymentActions() {
+    document.querySelectorAll('.remove-card').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cardId = btn.dataset.id;
+        this.confirmRemoveCard(cardId);
+      });
+    });
+  }
+
+  confirmRemoveCard(cardId) {
+    const modal = document.createElement('div');
+    modal.className = 'confirmation-modal';
+    modal.innerHTML = `
+      <div class="confirmation-content">
+        <h3><i class="fas fa-credit-card"></i> Remover Cartão</h3>
+        <p>Tem certeza que deseja remover este cartão?</p>
+        <div class="confirmation-buttons">
+          <button id="cancelRemove" class="btn-outline">Cancelar</button>
+          <button id="confirmRemove" class="btn-gold">Remover</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    DOM.get('#confirmRemove')?.addEventListener('click', () => {
+      this.removeCard(cardId);
+      modal.remove();
+    });
+
+    DOM.get('#cancelRemove')?.addEventListener('click', () => {
+      modal.remove();
+    });
+  }
+
+  removeCard(cardId) {
+    this.currentUser.cartoes = this.currentUser.cartoes.filter(card => card.id !== cardId);
+    UserService.saveUser(this.currentUser);
+    this.renderPayments();
   }
 
   renderBenefits() {
     const { nivelFidelidade, pontos, dataNascimento } = this.currentUser;
-    const levels = ['BRONZE', 'PRATA', 'OURO', 'DIAMANTE'];
-    const currentIndex = levels.indexOf(nivelFidelidade);
-    const nextLevel = levels[currentIndex + 1];
-
-    // Badge do nível
-    const badge = document.getElementById('current-tier-badge');
-    if (badge) {
-      badge.textContent = nivelFidelidade;
-      badge.className = `tier-badge ${nivelFidelidade.toLowerCase()}`;
-    }
-
-    // Progresso
-    const progressBar = document.getElementById('tier-progress-bar');
-    if (progressBar) {
-      const progress = nextLevel 
-        ? (pontos / (nextLevel === 'PRATA' ? 1000 : nextLevel === 'OURO' ? 5000 : 15000)) * 100
-        : 100;
-      progressBar.style.width = `${Math.min(100, progress)}%`;
-    }
-
-    // Benefícios do próximo nível
-    const nextBenefits = document.getElementById('next-tier-benefits');
-    if (nextBenefits) {
-      nextBenefits.innerHTML = nextLevel ? `
-        <strong>${nextLevel}</strong> desbloqueia:
-        <ul>
-          <li>${nextLevel === 'PRATA' ? '5%' : '10%'} de desconto</li>
-          <li>${nextLevel === 'PRATA' ? 'Frete grátis acima de R$100' : 'Presentes exclusivos'}</li>
-        </ul>
-      ` : 'Você alcançou o nível máximo!';
-    }
-
-    // Bônus de aniversário
-    this.checkBirthdayBonus(dataNascimento);
-  
-  }
-
-  renderFidelityProgress(currentLevel, currentPoints) {
-    const levels = {
-      BRONZE: { min: 0, next: 'PRATA', nextMin: 1000 },
-      PRATA: { min: 1000, next: 'OURO', nextMin: 5000 },
-      OURO: { min: 5000, next: 'DIAMANTE', nextMin: 15000 },
-      DIAMANTE: { min: 15000, next: null }
-    };
-
-    const levelConfig = levels[currentLevel] || levels.BRONZE;
-    const progressBar = document.getElementById('loyalty-progress-bar');
-    const nextLabel = document.getElementById('next-level-label');
-
-    if (progressBar && nextLabel) {
-      if (levelConfig.next) {
-        const progress = ((currentPoints - levelConfig.min) / (levelConfig.nextMin - levelConfig.min)) * 100;
-        progressBar.style.width = `${Math.min(100, progress)}%`;
-        nextLabel.textContent = `Próximo: ${levelConfig.next} (faltam ${levelConfig.nextMin - currentPoints} pontos)`;
-      } else {
-        progressBar.style.width = '100%';
-        nextLabel.textContent = 'Nível máximo alcançado!';
-      }
-    }
-  }
-
-  renderOrderHistory(orders) {
-    const container = document.getElementById('orders-list');
+    const container = DOM.get('#benefits-content');
     if (!container) return;
 
-    if (!orders?.length) {
-      container.innerHTML = '<div class="empty-state">Nenhum pedido encontrado</div>';
-      return;
-    }
-
-    container.innerHTML = orders.map(order => `
-      <div class="order-card">
-        <div class="order-header">
-          <span>Pedido #${order.id}</span>
-          <span class="status ${order.status.toLowerCase()}">${order.status}</span>
-        </div>
-        <div class="order-date">${this.formatDate(order.data)}</div>
-        <div class="order-products">
-          ${order.produtos.slice(0, 3).map(p => `
-            <div class="product">
-              <img src="${p.imagem || './assets/image/red.jpeg'}" alt="${p.nome}">
-              <span>${p.nome} (${p.quantidade}x)</span>
-            </div>
-          `).join('')}
-        </div>
-        <div class="order-total">
-          <span>Total: R$ ${order.total.toFixed(2)}</span>
-          ${order.pontosGanhos ? `<span class="points">+${order.pontosGanhos} pts</span>` : ''}
+    const isBirthday = this.checkBirthday(dataNascimento);
+    
+    container.innerHTML = `
+      <div class="benefits-header">
+        <h3><i class="fas fa-award"></i> Seus Benefícios</h3>
+        <div class="tier-info">
+          <span class="tier-badge ${nivelFidelidade.toLowerCase()}">
+            ${nivelFidelidade}
+          </span>
+          <span>${this.getNextTierMessage(nivelFidelidade, pontos)}</span>
         </div>
       </div>
-    `).join('');
-  }
-
-  renderPaymentMethods(cards) {
-    const container = document.getElementById('payment-methods-list');
-    if (!container) return;
-
-    container.innerHTML = cards?.length ? cards.map(card => `
-      <div class="payment-card">
-        <i class="fab fa-cc-${card.bandeira.toLowerCase()}"></i>
-        <div class="card-info">
-          <div>•••• •••• •••• ${card.ultimosDigitos}</div>
-          <small>${card.nome} • Expira ${card.validade}</small>
-        </div>
-        <button class="remove-card" data-id="${card.id}">
-          <i class="fas fa-trash"></i>
-        </button>
+      
+      <div class="benefits-grid">
+        ${this.createBenefitCard(
+          'presente',
+          'Presente de Aniversário',
+          isBirthday ? 'Escolha seu presente!' : 'Disponível no seu aniversário',
+          isBirthday,
+          isBirthday ? 'gold' : 'upcoming'
+        )}
+        
+        ${this.createBenefitCard(
+          'shipping',
+          'Frete Grátis',
+          nivelFidelidade === 'DIAMANTE' ? 'Frete grátis em todos pedidos' : 
+          nivelFidelidade === 'OURO' ? 'Frete grátis acima de R$ 50' : 'Disponível em níveis superiores',
+          nivelFidelidade === 'DIAMANTE' || nivelFidelidade === 'OURO',
+          nivelFidelidade === 'DIAMANTE' ? 'diamond' : 
+          nivelFidelidade === 'OURO' ? 'gold' : 'upcoming'
+        )}
+        
+        ${this.createBenefitCard(
+          'discount',
+          'Descontos Exclusivos',
+          nivelFidelidade === 'DIAMANTE' ? '20% de desconto' : 
+          nivelFidelidade === 'OURO' ? '15% de desconto' : 
+          nivelFidelidade === 'PRATA' ? '10% de desconto' : '5% de desconto',
+          true,
+          nivelFidelidade.toLowerCase()
+        )}
       </div>
-    `).join('') : '<div class="empty-state">Nenhum cartão cadastrado</div>';
+    `;
   }
 
-  renderBenefits(currentLevel, currentPoints) {
-    const tierBadge = document.getElementById('current-tier-badge');
-    if (tierBadge) {
-      tierBadge.textContent = currentLevel;
-      tierBadge.className = `badge ${currentLevel.toLowerCase()}`;
-    }
+  createBenefitCard(icon, title, description, isActive, type) {
+    return `
+      <div class="benefit-card ${type}-benefit ${isActive ? 'active' : ''}">
+        <div class="benefit-icon">
+          <i class="fas fa-${icon}"></i>
+        </div>
+        <h4>${title}</h4>
+        <p>${description}</p>
+        ${isActive ? '<div class="benefit-status active">Disponível</div>' : ''}
+      </div>
+    `;
   }
 
-  open() {
-    if (!this.modal) return;
+  checkBirthday(birthdate) {
+    if (!birthdate) return false;
+    const today = new Date();
+    const birthDate = new Date(birthdate);
+    return today.getMonth() === birthDate.getMonth() && 
+           today.getDate() === birthDate.getDate();
+  }
 
-    console.log('Abrindo modal de perfil...');
-    this.modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
+  getNextTierMessage(currentLevel, currentPoints) {
+    const nextLevel = FIDELIDADE.niveis[currentLevel]?.next;
+    if (!nextLevel) return 'Você alcançou o nível máximo!';
 
-    const isLoggedIn = sessionStorage.getItem('auth_token') !== null;
-    const loginMsg = this.modal.querySelector('#login-required-message');
-    const profileContent = this.modal.querySelector('.profile-modal-content');
-
-    if (loginMsg) loginMsg.style.display = isLoggedIn ? 'none' : 'block';
-    if (profileContent) profileContent.style.display = isLoggedIn ? 'block' : 'none';
-
-    if (isLoggedIn) {
-      this.loadUserData();
-    }
+    const pointsNeeded = FIDELIDADE.niveis[nextLevel].minPontos - currentPoints;
+    return `Faltam ${pointsNeeded} pontos para ${nextLevel}`;
   }
 
   close() {
-    if (this.modal) {
-      this.modal.style.display = 'none';
-      document.body.style.overflow = 'auto';
-    }
-  }
-
-  formatDate(dateString) {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
-  }
-
-  showErrorMessage(message) {
-    console.error(message);
-    // Implemente sua lógica de exibição de erros
+    if (!this.isOpen) return;
+    
+    this.modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    this.isOpen = false;
   }
 }
-
-// Inicialização
-document.addEventListener('DOMContentLoaded', () => {
-  window.profileModal = new ProfileModal();
-  
-  document.getElementById('authButton')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (sessionStorage.getItem('auth_token')) {
-      window.profileModal?.open();
-    } else {
-      document.getElementById('authModal').style.display = 'block';
-    }
-  });
-});

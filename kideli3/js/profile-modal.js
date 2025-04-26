@@ -1,230 +1,899 @@
 class ProfileModal {
   constructor() {
-    this.modal = document.getElementById('profileModal');
-    this.isOpen = false;
-    this.isInitialized = false;
+    this.state = {
+      isOpen: false,
+      isEditing: false,
+      isLoading: false,
+      currentTab: 'profile',
+      avatarChanged: false
+    };
+
     this.currentUser = null;
-    
-    if (!this.modal) {
-      console.error('[ProfileModal] Elemento não encontrado');
-      return;
+    this.elements = {};
+    this.avatarFile = null;
+
+    // Mapeamento de elementos essenciais
+    this.requiredElements = {
+      modal: 'profileModal',
+      closeBtn: 'profile-close',
+      tabs: 'profile-tabs',
+      tabContents: 'profile-tab-content',
+      loader: 'profile-loader',
+      loginMessage: 'login-required-message',
+      editBtn: 'edit-profile-btn',
+      saveBtn: 'save-profile-btn',
+      logoutBtn: 'logout-btn',
+      loginBtn: 'goToLoginBtn',
+      avatarInput: 'avatar-input',
+      avatarPreview: 'avatar-preview',
+      // Elementos de dados
+      name: 'profile-name',
+      email: 'profile-email',
+      phone: 'profile-phone',
+      birthday: 'profile-birthday',
+      cpf: 'profile-cpf',
+      street: 'profile-rua',
+      number: 'profile-numero',
+      complement: 'profile-complemento',
+      neighborhood: 'profile-bairro',
+      city: 'profile-cidade',
+      state: 'profile-uf',
+      ordersContent: 'orders-content',
+      addressesContent: 'addresses-content',
+      fidelityContent: 'fidelity-content',
+      preferencesContent: 'preferences-content'
+    };
+
+    try {
+      this._initialize();
+      console.log('[ProfileModal] Initialized successfully');
+    } catch (error) {
+      console.error('[ProfileModal] Initialization error:', error);
+      this._showError('Failed to load profile');
+    }
+  }
+
+  /* ========== PRIVATE METHODS ========== */
+
+  _initialize() {
+    this._loadElements();
+    this._setupEventListeners();
+  }
+
+  _loadElements() {
+    // Load all required elements
+    for (const [key, id] of Object.entries(this.requiredElements)) {
+      const element = document.getElementById(id);
+      if (!element) {
+        console.error(`[ProfileModal] Element ${id} not found`);
+        continue;
+      }
+      this.elements[key] = element;
     }
 
-    this.initElements();
-    this.init();
-  }
-
-  initElements() {
-    this.closeButton = this.modal.querySelector('.profile-close');
-    this.tabs = this.modal.querySelectorAll('.profile-tab');
-    this.tabPanes = this.modal.querySelectorAll('.tab-pane');
-    this.profileContent = this.modal.querySelector('.profile-modal-content');
-    this.loginMessage = this.createLoginMessage();
-    this.logoutBtn = this.modal.querySelector('#logout-btn');
-    if (!this.logoutBtn) {
-      console.warn('[ProfileModal] Botão de logout não encontrado');
+    // Check critical elements
+    if (!this.elements.modal) {
+      throw new Error('Main modal element not found');
     }
   }
 
-  createLoginMessage() {
-    const existing = this.modal.querySelector('#login-required-message');
-    if (existing) return existing;
-    
-    const message = document.createElement('div');
-    message.id = 'login-required-message';
-    message.className = 'login-message';
-    message.innerHTML = `
-      <div class="login-message-content">
-        <i class="fas fa-lock"></i>
-        <h3>Acesso Restrito</h3>
-        <p>Para visualizar seu perfil, faça login ou cadastre-se</p>
-        <button id="goToLoginBtn" class="btn-gold">
-          <i class="fas fa-sign-in-alt"></i> Ir para Login
-        </button>
-      </div>
-    `;
-    this.modal.appendChild(message);
-    return message;
-  }
+  _setupEventListeners() {
+    // Close modal
+    if (this.elements.closeBtn) {
+      this.elements.closeBtn.addEventListener('click', () => this.close());
+    }
 
-  init() {
-    if (this.isInitialized) return;
-    
-    this.setupEventListeners();
-    this.isInitialized = true;
-    console.log('[ProfileModal] Inicializado com sucesso');
-  }
-
-  setupEventListeners() {
-    // Fechar modal
-    this.closeButton?.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.close();
-    });
-    
-    // Fechar ao clicar fora
-    this.modal.addEventListener('click', (e) => {
-      if (e.target === this.modal) this.close();
-    });
-
-    // Botão de login
-    document.getElementById('goToLoginBtn')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.close();
-      this.showAuthModal();
-    });
-
-    // Abas
-    this.setupTabs();
-    
-    // Logout
-    this.setupLogoutButton();
-  }
-
-  setupTabs() {
-    this.tabs.forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.switchTab(tab.dataset.tab);
+    // Close when clicking outside
+    if (this.elements.modal) {
+      this.elements.modal.addEventListener('click', (e) => {
+        if (e.target === this.elements.modal) this.close();
       });
-    });
-  }
+    }
 
-  switchTab(tabId) {
-    // Ativa/desativa abas
-    this.tabs.forEach(tab => {
-      tab.classList.toggle('active', tab.dataset.tab === tabId);
-    });
-    
-    // Ativa/desativa conteúdos
-    this.tabPanes.forEach(pane => {
-      const isActive = pane.id === `${tabId}-content`;
-      if (isActive) {
-        pane.style.display = 'block';
-        setTimeout(() => pane.classList.add('active'), 10);
-      } else {
-        pane.style.display = 'none';
-        pane.classList.remove('active');
+    // Close with ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.state.isOpen) {
+        this.close();
       }
     });
 
-    // Atualiza conteúdo específico da aba
-    if (tabId === 'orders') {
-      this.renderOrders();
-    } else if (tabId === 'payments') {
-      this.renderPayments();
-    } else if (tabId === 'benefits') {
-      this.renderBenefits();
+    // Login button
+    if (this.elements.loginBtn) {
+      this.elements.loginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.close();
+        this.showAuthModal('login');
+      });
+    }
+
+    // Logout button
+    if (this.elements.logoutBtn) {
+      this.elements.logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this._handleLogout();
+      });
+    }
+
+    // Edit buttons
+    if (this.elements.editBtn) {
+      this.elements.editBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.toggleEditMode();
+      });
+    }
+
+    if (this.elements.saveBtn) {
+      this.elements.saveBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.saveChanges();
+      });
+    }
+
+    // Tab switching
+    if (this.elements.tabs) {
+      this.elements.tabs.addEventListener('click', (e) => {
+        const tabBtn = e.target.closest('.tab-button');
+        if (tabBtn) {
+          e.preventDefault();
+          const tabId = tabBtn.dataset.tab;
+          this.switchTab(tabId);
+        }
+      });
+    }
+
+    // Avatar upload
+    if (this.elements.avatarInput) {
+      this.elements.avatarInput.addEventListener('change', (e) => {
+        this._handleAvatarUpload(e);
+      });
+    }
+
+    // Setup fidelity actions
+    this.setupFidelityActions();
+  }
+
+  /**
+   * Configura os eventos dos botões de fidelidade
+   */
+  setupFidelityActions() {
+    // Configura botões de resgate
+    document.querySelectorAll('.btn-resgatar').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const benefit = btn.dataset.benefit;
+        await this.resgatarBeneficio(benefit);
+      });
+    });
+
+    // Configura botão "Como ganhar pontos"
+    const pontosBtn = document.getElementById('btn-como-ganhar-pontos');
+    if (pontosBtn) {
+      pontosBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.showComoGanharPontosModal();
+      });
     }
   }
 
-  setupLogoutButton() {
-    if (!this.logoutBtn) {
-      console.warn('[ProfileModal] Botão de logout não disponível');
+  /**
+   * Resgata um benefício do programa de fidelidade
+   */
+  async resgatarBeneficio(benefit) {
+    try {
+      this._showLoading();
+      
+      // Simular chamada à API (substitua por chamada real)
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Atualizar pontos do usuário (exemplo)
+      if (this.currentUser.points) {
+        this.currentUser.points -= this._getBenefitCost(benefit);
+        sessionStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+      }
+      
+      this.showNotification(`Benefício "${this._getBenefitName(benefit)}" resgatado com sucesso!`, 'success');
+      this.loadFidelityData();
+    } catch (error) {
+      console.error('Erro ao resgatar benefício:', error);
+      this.showNotification(error.message || 'Erro ao resgatar benefício', 'error');
+    } finally {
+      this._hideLoading();
+    }
+  }
+
+  /**
+   * Mostra o modal com dicas para ganhar mais pontos
+   */
+  showComoGanharPontosModal() {
+    const userId = this.currentUser?.id || '12345'; // ID do usuário ou padrão
+    const modalContent = `
+      <div class="pontos-modal">
+        <h3><i class="fas fa-coins"></i> Como Ganhar Mais Pontos</h3>
+        
+        <div class="pontos-tip">
+          <div class="pontos-icon"><i class="fas fa-user-plus"></i></div>
+          <div class="pontos-content">
+            <h4>Indique Amigos</h4>
+            <p>Ganhe 100 pontos por cada amigo que fizer o primeiro pedido usando seu código.</p>
+            <div class="referral-code">
+              <input type="text" value="KIDELI-${userId}" readonly>
+              <button class="btn-copiar-codigo">Copiar</button>
+            </div>
+            <small>Compartilhe seu código com amigos e ganhe pontos quando eles fizerem o primeiro pedido</small>
+          </div>
+        </div>
+        
+        <div class="pontos-tip">
+          <div class="pontos-icon"><i class="fas fa-calendar-check"></i></div>
+          <div class="pontos-content">
+            <h4>Fidelidade Semanal</h4>
+            <p>Faça pedidos 3 semanas consecutivas e ganhe 150 pontos bônus.</p>
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 66%"></div>
+              </div>
+              <span>2/3 semanas completas</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="pontos-tip">
+          <div class="pontos-icon"><i class="fas fa-birthday-cake"></i></div>
+          <div class="pontos-content">
+            <h4>Aniversário</h4>
+            <p>Ganhe 200 pontos no seu aniversário!</p>
+            <small>Disponível no mês do seu aniversário</small>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    this.showCustomModal('Como Ganhar Pontos', modalContent);
+    
+    // Configura evento do botão copiar
+    document.querySelector('.btn-copiar-codigo')?.addEventListener('click', () => {
+      const codeInput = document.querySelector('.referral-code input');
+      codeInput.select();
+      document.execCommand('copy');
+      this.showNotification('Código copiado! Compartilhe com seus amigos.', 'success');
+    });
+  }
+
+  /**
+   * Mostra um modal customizado
+   */
+  showCustomModal(title, content) {
+    const modalId = 'custom-modal';
+    let modal = document.getElementById(modalId);
+    
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = modalId;
+      modal.className = 'custom-modal';
+      modal.innerHTML = `
+        <div class="custom-modal-content">
+          <span class="custom-modal-close">&times;</span>
+          <h2>${title}</h2>
+          <div class="custom-modal-body"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      modal.querySelector('.custom-modal-close').addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+    
+    modal.querySelector('.custom-modal-body').innerHTML = content;
+    modal.style.display = 'block';
+  }
+
+  /**
+   * Funções auxiliares para o sistema de fidelidade
+   */
+  _getBenefitCost(benefit) {
+    const costs = {
+      'frete_gratis': 200,
+      'desconto_10': 150,
+      'brinde': 100
+    };
+    return costs[benefit] || 0;
+  }
+
+  _getBenefitName(benefit) {
+    const names = {
+      'frete_gratis': 'Frete Grátis',
+      'desconto_10': '10% de Desconto',
+      'brinde': 'Brinde Especial'
+    };
+    return names[benefit] || benefit;
+  }
+
+  _handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.match('image.*')) {
+      this._showError('Por favor, selecione uma imagem válida');
       return;
     }
 
-    this.logoutBtn.removeEventListener('click', this.handleLogoutClick);
-    this.handleLogoutClick = this.handleLogoutClick.bind(this);
-    this.logoutBtn.addEventListener('click', this.handleLogoutClick);
-    console.log('[ProfileModal] Botão de logout configurado');
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      this._showError('A imagem deve ter menos de 2MB');
+      return;
+    }
+
+    this.avatarFile = file;
+    this.state.avatarChanged = true;
+
+    // Preview image
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (this.elements.avatarPreview) {
+        this.elements.avatarPreview.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '50%';
+        this.elements.avatarPreview.appendChild(img);
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
-  handleLogoutClick(e) {
-    e.preventDefault();
-    console.log('[ProfileModal] Botão de logout clicado');
-    this.confirmLogout();
+  _showLoading() {
+    if (this.state.isLoading || !this.elements.loader) return;
+    this.state.isLoading = true;
+    this.elements.loader.style.display = 'flex';
   }
 
-  confirmLogout() {
-    const modal = document.createElement('div');
-    modal.className = 'confirmation-modal';
-    modal.style.display = 'none';
-    
-    modal.innerHTML = `
-        <div class="confirmation-content">
-            <h3><i class="fas fa-sign-out-alt"></i> Sair da Conta</h3>
-            <p>Tem certeza que deseja sair da sua conta?</p>
-            <div class="confirmation-buttons">
-                <button id="cancelLogout" class="btn-outline">Cancelar</button>
-                <button id="confirmLogout" class="btn-gold">Sair</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    setTimeout(() => {
-        modal.style.display = 'flex';
-        
-        const confirmBtn = document.getElementById('confirmLogout');
-        if (confirmBtn) {
-            confirmBtn.addEventListener('click', () => {
-                try {
-                    if (window.Auth && window.Auth.logout) {
-                        window.Auth.logout();
-                    } else {
-                        sessionStorage.removeItem('auth_token');
-                        sessionStorage.removeItem('auth_user');
-                        localStorage.removeItem('kideliCart');
-                        
-                        const authButtons = document.querySelectorAll('.auth-button');
-                        authButtons.forEach(btn => {
-                            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
-                            btn.classList.remove('logged-in');
-                        });
-                        
-                        showNotification('Você foi desconectado', 'info');
-                    }
-                    
-                    this.close();
-                    modal.remove();
-                    setTimeout(() => window.location.reload(), 300);
-                    
-                } catch (error) {
-                    console.error('Erro durante logout:', error);
-                    modal.remove();
-                    this.showError('Erro ao sair da conta');
-                }
-            });
-        }
-        
-        const cancelBtn = document.getElementById('cancelLogout');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => {
-                modal.remove();
-            });
-        }
-    }, 50);
+  _hideLoading() {
+    if (!this.state.isLoading || !this.elements.loader) return;
+    this.state.isLoading = false;
+    this.elements.loader.style.display = 'none';
   }
 
-  async open() {
-    if (this.isOpen) return;
-    
-    console.log('[ProfileModal] Abrindo modal...');
-    this.modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    this.isOpen = true;
-    
-    const isAuthenticated = await this.checkAuth();
-    
-    if (isAuthenticated) {
-      await this.loadUserData();
-      this.showProfileContent();
-    } else {
-      this.showLoginMessage();
+  _showProfileContent() {
+    if (this.elements.tabContents) this.elements.tabContents.style.display = 'block';
+    if (this.elements.loginMessage) this.elements.loginMessage.style.display = 'none';
+  }
+
+  _showLoginMessage() {
+    if (this.elements.tabContents) this.elements.tabContents.style.display = 'none';
+    if (this.elements.loginMessage) this.elements.loginMessage.style.display = 'flex';
+  }
+
+  _handleLogout() {
+    if (window.confirm('Tem certeza que deseja sair da sua conta?')) {
+      this.performLogout();
     }
   }
 
-  showProfileContent() {
-    this.profileContent.style.display = 'block';
-    this.loginMessage.style.display = 'none';
-    this.switchTab('overview');
+  _validateField(input) {
+    const fieldName = input.dataset.field;
+    const value = input.value.trim();
+    let isValid = true;
+    let errorMessage = '';
+
+    switch (fieldName) {
+      case 'email':
+        isValid = this._validateEmail(value);
+        errorMessage = 'Por favor, insira um e-mail válido';
+        break;
+      case 'phone':
+        isValid = value.replace(/\D/g, '').length >= 11;
+        errorMessage = 'Telefone deve ter pelo menos 11 dígitos';
+        break;
+      case 'birthday':
+        isValid = !value || this._validateDate(value);
+        errorMessage = 'Data de nascimento inválida';
+        break;
+      case 'name':
+        isValid = value.length >= 3;
+        errorMessage = 'Nome deve ter pelo menos 3 caracteres';
+        break;
+      case 'cpf':
+        isValid = this._validateCPF(value);
+        errorMessage = 'CPF inválido';
+        break;
+    }
+
+    if (!isValid) {
+      input.classList.add('invalid');
+      input.title = errorMessage;
+    } else {
+      input.classList.remove('invalid');
+      input.title = '';
+    }
+
+    return isValid;
   }
 
-  showLoginMessage() {
-    this.profileContent.style.display = 'none';
-    this.loginMessage.style.display = 'flex';
+  _validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }
+
+  _validateDate(dateString) {
+    if (!dateString) return true;
+    const date = new Date(dateString);
+    return !isNaN(date.getTime());
+  }
+
+  _validateCPF(cpf) {
+    cpf = cpf.replace(/\D/g, '');
+    if (cpf.length !== 11) return false;
+    
+    // Validate CPF algorithm
+    let sum = 0;
+    let remainder;
+    
+    for (let i = 1; i <= 9; i++) {
+      sum += parseInt(cpf.substring(i-1, i)) * (11 - i);
+    }
+    
+    remainder = (sum * 10) % 11;
+    
+    if ((remainder === 10) || (remainder === 11)) {
+      remainder = 0;
+    }
+    
+    if (remainder !== parseInt(cpf.substring(9, 10))) {
+      return false;
+    }
+    
+    sum = 0;
+    
+    for (let i = 1; i <= 10; i++) {
+      sum += parseInt(cpf.substring(i-1, i)) * (12 - i);
+    }
+    
+    remainder = (sum * 10) % 11;
+    
+    if ((remainder === 10) || (remainder === 11)) {
+      remainder = 0;
+    }
+    
+    if (remainder !== parseInt(cpf.substring(10, 11))) {
+      return false;
+    }
+    
+    return true;
+  }
+
+  _collectFormData() {
+    const formData = {
+      name: this.elements.name?.querySelector('input')?.value || this.currentUser?.name,
+      email: this.elements.email?.querySelector('input')?.value || this.currentUser?.email,
+      phone: this.elements.phone?.querySelector('input')?.value || this.currentUser?.phone,
+      birthday: this.elements.birthday?.querySelector('input')?.value || this.currentUser?.birthday,
+      cpf: this.elements.cpf?.querySelector('input')?.value || this.currentUser?.cpf,
+      address: {
+        street: this.elements.street?.querySelector('input')?.value || this.currentUser?.address?.street,
+        number: this.elements.number?.querySelector('input')?.value || this.currentUser?.address?.number,
+        complement: this.elements.complement?.querySelector('input')?.value || this.currentUser?.address?.complement,
+        neighborhood: this.elements.neighborhood?.querySelector('input')?.value || this.currentUser?.address?.neighborhood,
+        city: this.elements.city?.querySelector('input')?.value || this.currentUser?.address?.city,
+        state: this.elements.state?.querySelector('input')?.value || this.currentUser?.address?.state
+      },
+      avatarChanged: this.state.avatarChanged,
+      avatarFile: this.avatarFile
+    };
+
+    // Additional validation
+    if (!formData.name || formData.name.length < 3) {
+      throw new Error('Nome deve ter pelo menos 3 caracteres');
+    }
+
+    if (!formData.email || !this._validateEmail(formData.email)) {
+      throw new Error('Por favor, insira um e-mail válido');
+    }
+
+    if (!formData.phone || formData.phone.replace(/\D/g, '').length < 11) {
+      throw new Error('Telefone deve ter pelo menos 11 dígitos');
+    }
+
+    if (formData.cpf && !this._validateCPF(formData.cpf)) {
+      throw new Error('Por favor, insira um CPF válido');
+    }
+
+    return formData;
+  }
+
+  _normalizeUserData(user) {
+    if (!user) return null;
+    
+    return {
+      id: user.id || '',
+      name: user.name || user.nome || 'Não informado',
+      email: user.email || 'Não informado',
+      phone: user.phone || user.telefone || user.celular || '',
+      birthday: user.birthday || user.dataNascimento || user.nascimento || '',
+      cpf: user.cpf || '',
+      avatar: user.avatar || null,
+      address: {
+        street: user.address?.street || user.endereco?.rua || user.logradouro || '',
+        number: user.address?.number || user.endereco?.numero || '',
+        complement: user.address?.complement || user.endereco?.complemento || '',
+        neighborhood: user.address?.neighborhood || user.endereco?.bairro || user.bairro || '',
+        city: user.address?.city || user.endereco?.cidade || user.cidade || '',
+        state: user.address?.state || user.endereco?.uf || user.uf || ''
+      },
+      tier: user.tier || 'bronze',
+      points: user.points || 0
+    };
+  }
+
+  _renderUserData() {
+    if (!this.currentUser) return;
+
+    // Personal data
+    if (this.elements.name) {
+      this.elements.name.textContent = this.currentUser.name || 'Não informado';
+    }
+    if (this.elements.email) {
+      this.elements.email.textContent = this.currentUser.email || 'Não informado';
+    }
+    if (this.elements.phone) {
+      this.elements.phone.textContent = this._formatPhone(this.currentUser.phone);
+    }
+    if (this.elements.birthday) {
+      this.elements.birthday.textContent = this._formatDate(this.currentUser.birthday);
+    }
+    if (this.elements.cpf) {
+      this.elements.cpf.textContent = this._formatCPF(this.currentUser.cpf);
+    }
+
+    // Address
+    if (this.currentUser.address) {
+      if (this.elements.street) {
+        this.elements.street.textContent = this.currentUser.address.street || 'Não informado';
+      }
+      if (this.elements.number) {
+        this.elements.number.textContent = this.currentUser.address.number || '';
+      }
+      if (this.elements.complement) {
+        this.elements.complement.textContent = this.currentUser.address.complement || '';
+      }
+      if (this.elements.neighborhood) {
+        this.elements.neighborhood.textContent = this.currentUser.address.neighborhood || '';
+      }
+      if (this.elements.city) {
+        this.elements.city.textContent = this.currentUser.address.city || '';
+      }
+      if (this.elements.state) {
+        this.elements.state.textContent = this.currentUser.address.state || '';
+      }
+    }
+
+    // Avatar
+    if (this.currentUser.avatar && this.elements.avatarPreview) {
+      this.elements.avatarPreview.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = this.currentUser.avatar;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      img.style.borderRadius = '50%';
+      this.elements.avatarPreview.appendChild(img);
+    } else if (this.elements.avatarPreview) {
+      const initials = this._getUserInitials();
+      this.elements.avatarPreview.innerHTML = `<span>${initials}</span>`;
+    }
+
+    // VIP badge
+    if (this.currentUser.tier && document.getElementById('vip-level-badge')) {
+      const badge = document.getElementById('vip-level-badge');
+      badge.className = `vip-badge ${this.currentUser.tier}`;
+      document.getElementById('vip-level').textContent = this.currentUser.tier.toUpperCase();
+    }
+  }
+
+  _getUserInitials() {
+    if (!this.currentUser?.name) return 'US';
+    const names = this.currentUser.name.split(' ');
+    let initials = names[0].substring(0, 1).toUpperCase();
+    if (names.length > 1) {
+      initials += names[names.length - 1].substring(0, 1).toUpperCase();
+    }
+    return initials;
+  }
+
+  _formatPhone(phone) {
+    if (!phone) return 'Não informado';
+    const cleaned = phone.replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{2})(\d{4,5})(\d{4})$/);
+    return match ? `(${match[1]}) ${match[2]}-${match[3]}` : phone;
+  }
+
+  _formatDate(dateString) {
+    if (!dateString) return 'Não informado';
+    try {
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? dateString : date.toLocaleDateString('pt-BR');
+    } catch {
+      return dateString;
+    }
+  }
+
+  _formatCPF(cpf) {
+    if (!cpf) return 'Não informado';
+    const cleaned = cpf.replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{3})(\d{2})$/);
+    return match ? `${match[1]}.${match[2]}.${match[3]}-${match[4]}` : cpf;
+  }
+
+  _formatDateForInput(dateString) {
+    if (!dateString) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+    
+    try {
+      if (dateString.includes('/')) {
+        const [day, month, year] = dateString.split('/');
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      }
+      
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+    } catch {
+      return '';
+    }
+  }
+
+  _formatCPFForInput(cpf) {
+    if (!cpf) return '';
+    return cpf.replace(/\D/g, '');
+  }
+
+  _showError(message) {
+    this.showNotification(message, 'error');
+  }
+
+  /* ========== PUBLIC METHODS ========== */
+
+  async open(tab = 'profile') {
+    if (this.state.isOpen || !this.elements.modal) return;
+    
+    console.log('[ProfileModal] Opening modal...');
+    this.elements.modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    this.state.isOpen = true;
+    
+    try {
+      this._showLoading();
+      
+      const isAuthenticated = await this.checkAuth();
+      
+      if (isAuthenticated) {
+        await this.loadUserData();
+        this._showProfileContent();
+        this.switchTab(tab);
+      } else {
+        this._showLoginMessage();
+      }
+    } catch (error) {
+      console.error('[ProfileModal] Error opening modal:', error);
+      this._showError('Error loading profile');
+      this.close();
+    } finally {
+      this._hideLoading();
+    }
+  }
+
+  close() {
+    if (!this.state.isOpen || !this.elements.modal) return;
+    
+    console.log('[ProfileModal] Closing modal...');
+    this.elements.modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    this.state.isOpen = false;
+    this.state.isEditing = false;
+    this.state.avatarChanged = false;
+    this.avatarFile = null;
+    
+    if (this.elements.modal.classList.contains('edit-mode')) {
+      this.elements.modal.classList.remove('edit-mode');
+    }
+  }
+
+  async switchTab(tabId) {
+    if (!tabId || this.state.currentTab === tabId || !this.elements.tabs) return;
+    
+    this.state.currentTab = tabId;
+    
+    // Update active tabs
+    const tabButtons = this.elements.tabs.querySelectorAll('.tab-button');
+    tabButtons.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.tab === tabId);
+    });
+    
+    // Update visible contents
+    const tabPanels = this.elements.tabContents.querySelectorAll('.tab-content');
+    tabPanels.forEach(content => {
+      content.style.display = content.id === `${tabId}-content` ? 'block' : 'none';
+    });
+    
+    // Load tab-specific data if needed
+    try {
+      this._showLoading();
+      
+      switch(tabId) {
+        case 'orders':
+          await this.loadOrders();
+          break;
+        case 'addresses':
+          await this.loadAddresses();
+          break;
+        case 'fidelity':
+          await this.loadFidelityData();
+          break;
+        case 'preferences':
+          await this.loadPreferences();
+          break;
+      }
+    } catch (error) {
+      console.error(`[ProfileModal] Error loading ${tabId} tab:`, error);
+      this._showError(`Error loading ${tabId}`);
+    } finally {
+      this._hideLoading();
+    }
+  }
+
+  toggleEditMode() {
+    if (!this.state.isEditing) {
+      // Entering edit mode
+      this.state.isEditing = true;
+      this.elements.modal.classList.add('edit-mode');
+      this.showEditFields();
+    } else {
+      // Exiting edit mode without saving
+      this.state.isEditing = false;
+      this.elements.modal.classList.remove('edit-mode');
+      this._renderUserData(); // Restore original values
+      this.state.avatarChanged = false;
+      this.avatarFile = null;
+    }
+  }
+
+  showEditFields() {
+    if (!this.currentUser) return;
+
+    const fields = [
+      { id: 'profile-name', type: 'text', value: this.currentUser.name },
+      { id: 'profile-phone', type: 'tel', value: this.currentUser.phone?.replace(/\D/g, '') },
+      { id: 'profile-birthday', type: 'date', value: this._formatDateForInput(this.currentUser.birthday) },
+      { id: 'profile-cpf', type: 'text', value: this._formatCPFForInput(this.currentUser.cpf) },
+      { id: 'profile-rua', type: 'text', value: this.currentUser.address?.street },
+      { id: 'profile-numero', type: 'text', value: this.currentUser.address?.number },
+      { id: 'profile-complemento', type: 'text', value: this.currentUser.address?.complement },
+      { id: 'profile-bairro', type: 'text', value: this.currentUser.address?.neighborhood },
+      { id: 'profile-cidade', type: 'text', value: this.currentUser.address?.city },
+      { id: 'profile-uf', type: 'text', value: this.currentUser.address?.state }
+    ];
+
+    fields.forEach(field => {
+      const element = document.getElementById(field.id);
+      if (!element) return;
+
+      this._createEditField(element, field.type, field.value || '');
+    });
+  }
+
+  _createEditField(element, type, value) {
+    if (!element.dataset.originalContent) {
+      element.dataset.originalContent = element.innerHTML;
+    }
+
+    const input = document.createElement('input');
+    input.type = type;
+    input.value = value;
+    input.className = 'form-control';
+    input.dataset.field = element.id.replace('profile-', '');
+
+    element.innerHTML = '';
+    element.appendChild(input);
+
+    // Special formatting for phone
+    if (type === 'tel') {
+      input.maxLength = 15;
+      input.addEventListener('input', (e) => {
+        e.target.value = this._formatPhoneInput(e.target.value);
+      });
+    }
+
+    // CPF formatting
+    if (type === 'text' && input.dataset.field === 'cpf') {
+      input.maxLength = 14;
+      input.addEventListener('input', (e) => {
+        e.target.value = this._formatCPFInput(e.target.value);
+      });
+    }
+
+    setTimeout(() => input.focus(), 50);
+  }
+
+  _formatPhoneInput(value) {
+    const numbers = value.replace(/\D/g, '');
+    let formatted = '';
+    
+    if (numbers.length > 0) formatted = `(${numbers.substring(0, 2)}`;
+    if (numbers.length > 2) formatted += `) ${numbers.substring(2, 7)}`;
+    if (numbers.length > 7) formatted += `-${numbers.substring(7, 11)}`;
+    
+    return formatted;
+  }
+
+  _formatCPFInput(value) {
+    const numbers = value.replace(/\D/g, '');
+    let formatted = '';
+    
+    if (numbers.length > 0) formatted = `${numbers.substring(0, 3)}`;
+    if (numbers.length > 3) formatted += `.${numbers.substring(3, 6)}`;
+    if (numbers.length > 6) formatted += `.${numbers.substring(6, 9)}`;
+    if (numbers.length > 9) formatted += `-${numbers.substring(9, 11)}`;
+    
+    return formatted;
+  }
+
+  async saveChanges() {
+    if (!this.state.isEditing) return;
+
+    try {
+      const updates = this._collectFormData();
+      
+      // Validate all fields before submitting
+      const inputs = this.elements.modal.querySelectorAll('input[data-field]');
+      let isValid = true;
+      
+      inputs.forEach(input => {
+        if (!this._validateField(input)) {
+          isValid = false;
+        }
+      });
+      
+      if (!isValid) {
+        throw new Error('Por favor, corrija os campos destacados');
+      }
+
+      this._showLoading();
+      
+      // Simulate API call - replace with real API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update user data
+      this.currentUser = this._normalizeUserData({
+        ...this.currentUser,
+        ...updates
+      });
+
+      // Handle avatar upload if changed
+      if (this.state.avatarChanged && this.avatarFile) {
+        // Simulate avatar upload - replace with real upload
+        await new Promise(resolve => setTimeout(resolve, 800));
+        this.currentUser.avatar = URL.createObjectURL(this.avatarFile);
+      }
+      
+      // Update local/session storage
+      if (window.Auth?.updateUser) {
+        await window.Auth.updateUser(this.currentUser);
+      } else {
+        sessionStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+      }
+      
+      // Exit edit mode
+      this.toggleEditMode(false);
+      
+      this.showNotification('Perfil atualizado com sucesso!', 'success');
+    } catch (error) {
+      console.error('Error saving:', error);
+      this.showNotification(error.message || 'Erro ao salvar alterações', 'error');
+    } finally {
+      this._hideLoading();
+    }
   }
 
   async checkAuth() {
@@ -232,7 +901,7 @@ class ProfileModal {
       const user = await this.getCurrentUser();
       return !!user;
     } catch (error) {
-      console.error('[ProfileModal] Erro ao verificar autenticação:', error);
+      console.error('[ProfileModal] Error checking auth:', error);
       return false;
     }
   }
@@ -242,8 +911,13 @@ class ProfileModal {
       return window.Auth.getCurrentUser();
     }
     
-    const userData = sessionStorage.getItem('auth_user');
-    return userData ? JSON.parse(userData) : null;
+    try {
+      const userData = sessionStorage.getItem('auth_user');
+      return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+      console.error('Error parsing userData:', error);
+      return null;
+    }
   }
 
   async loadUserData() {
@@ -251,400 +925,464 @@ class ProfileModal {
       const user = await this.fetchUserData();
       if (!user) throw new Error('Usuário não encontrado');
       
-      this.currentUser = user;
-      console.log('[ProfileModal] Dados do usuário carregados:', user);
-      this.renderUserData();
+      this.currentUser = this._normalizeUserData(user);
+      this._renderUserData();
     } catch (error) {
-      console.error('[ProfileModal] Erro ao carregar dados:', error);
-      this.showError('Erro ao carregar perfil');
+      console.error('[ProfileModal] Error loading data:', error);
+      throw error;
     }
   }
 
   async fetchUserData() {
-    const user = window.Auth?.getUser ? window.Auth.getUser() : getLoggedUser();
-    
-    if (!user) {
-        throw new Error('Usuário não autenticado');
-    }
-    
-    const usuarioCompleto = getUsuarioById(user.id);
-    
-    if (!usuarioCompleto) {
-        throw new Error('Dados do usuário não encontrados');
-    }
-    
-    return usuarioCompleto;
-  }
-
-  renderUserData() {
-    if (!this.currentUser) return;
-
-    this.setTextContent('profile-modal-name', this.currentUser.nome);
-    this.setTextContent('profile-modal-email', this.currentUser.email);
-    this.setTextContent('profile-phone', this.currentUser.celular);
-    this.setTextContent('profile-birthdate', this.formatDate(this.currentUser.dataNascimento));
-    this.setTextContent('profile-address', this.formatAddress(this.currentUser.endereco));
-
-    this.renderFidelitySystem();
-    this.updateUserBadge();
-    this.setupProfileEditing();
-  }
-
-  renderFidelitySystem() {
-    const { nivelFidelidade, pontos } = this.currentUser;
-    
-    const levels = {
-      BRONZE: { 
-        min: 0, 
-        next: 'PRATA', 
-        nextMin: 1000, 
-        discount: 5, 
-        color: '#cd7f32',
-        icon: 'shield-alt',
-        benefits: ['5% de desconto']
-      },
-      PRATA: { 
-        min: 1000, 
-        next: 'OURO', 
-        nextMin: 5000, 
-        discount: 10, 
-        color: '#c0c0c0',
-        icon: 'shield-alt',
-        benefits: ['10% de desconto', 'Frete grátis acima de R$100']
-      },
-      OURO: { 
-        min: 5000, 
-        next: 'DIAMANTE', 
-        nextMin: 15000, 
-        discount: 15, 
-        color: '#ffd700',
-        icon: 'crown',
-        benefits: ['15% de desconto', 'Frete grátis acima de R$50', 'Presente de aniversário']
-      },
-      DIAMANTE: { 
-        min: 15000, 
-        next: null, 
-        discount: 20, 
-        color: '#b9f2ff',
-        icon: 'gem',
-        benefits: ['20% de desconto', 'Frete grátis ilimitado', 'Presente de aniversário premium', 'Acesso VIP', 'Brinde exclusivo']
+    try {
+      if (window.Auth?.getUser) {
+        return await window.Auth.getUser();
       }
-    };
-
-    const currentLevel = levels[nivelFidelidade] || levels.BRONZE;
-
-    const badge = document.getElementById('vip-level-badge');
-    if (badge) {
-      badge.className = `vip-badge ${nivelFidelidade.toLowerCase()}`;
-      badge.querySelector('#vip-level').textContent = nivelFidelidade;
-      badge.style.backgroundColor = currentLevel.color;
       
-      const icon = badge.querySelector('.vip-icon');
-      if (icon) {
-        icon.className = `fas fa-${currentLevel.icon} vip-icon`;
-      } else {
-        badge.insertAdjacentHTML('afterbegin', `<i class="fas fa-${currentLevel.icon} vip-icon"></i>`);
-      }
-    }
-
-    this.renderProgressBar(pontos, currentLevel);
-
-    this.setTextContent('profile-tier', nivelFidelidade);
-    this.setTextContent('profile-points', `${pontos.toLocaleString('pt-BR')} pontos`);
-    this.setTextContent('current-discount', `Desconto: ${currentLevel.discount}%`);
-    
-    if (currentLevel.next) {
-      const pointsNeeded = currentLevel.nextMin - pontos;
-      this.setTextContent('next-level-label', 
-        `Próximo nível (${currentLevel.next}): faltam ${pointsNeeded.toLocaleString('pt-BR')} pontos`);
-    } else {
-      this.setTextContent('next-level-label', '🎉 Você alcançou o nível máximo!');
+      const userData = sessionStorage.getItem('auth_user');
+      if (!userData) throw new Error('Usuário não autenticado');
+      return JSON.parse(userData);
+    } catch (error) {
+      console.error('[ProfileModal] Error fetching user data:', error);
+      throw error;
     }
   }
 
-  renderProgressBar(currentPoints, currentLevel) {
-    const progressBar = document.getElementById('loyalty-progress-bar');
-    if (!progressBar) return;
-
-    const progress = currentLevel.next 
-      ? ((currentPoints - currentLevel.min) / (currentLevel.nextMin - currentLevel.min)) * 100
-      : 100;
-    
-    progressBar.style.width = `${Math.min(100, progress)}%`;
-    progressBar.style.backgroundColor = currentLevel.color;
-  }
-
-  renderBenefits() {
-    const { nivelFidelidade, pontos, dataNascimento } = this.currentUser;
-    const container = document.getElementById('benefits-content');
-    if (!container) return;
-
-    const isBirthday = this.checkBirthday(dataNascimento);
-    const isDiamond = nivelFidelidade === 'DIAMANTE';
-    
-    container.innerHTML = `
-      <div class="benefits-header">
-        <h3><i class="fas fa-award"></i> Seus Benefícios Exclusivos</h3>
-        <div class="tier-info">
-          <span id="current-tier-badge" class="tier-badge ${nivelFidelidade.toLowerCase()}">
-            <i class="fas fa-${isDiamond ? 'gem' : 'shield-alt'}"></i>
-            ${nivelFidelidade}
-          </span>
-          <span id="days-to-next-tier">${this.getNextTierMessage(nivelFidelidade, pontos)}</span>
-        </div>
-      </div>
+  async loadOrders() {
+    try {
+      if (!this.elements.ordersContent) return;
       
-      <div class="benefits-grid">
-        ${this.createBenefitCard(
-          'gift',
-          isDiamond ? 'Presente Diamante' : 'Presente de Aniversário',
-          isBirthday ? 
-            (isDiamond ? 'Escolha seu presente premium!' : 'Escolha seu presente especial!') : 
-            'Disponível no seu aniversário',
-          isBirthday,
-          isBirthday ? (isDiamond ? 'diamond' : 'gold') : 'upcoming',
-          isDiamond
-        )}
-        
-        ${this.createBenefitCard(
-          'shipping',
-          'Frete Grátis',
-          isDiamond ? 'Frete grátis em todos pedidos' : 
-          nivelFidelidade === 'OURO' ? 'Frete grátis acima de R$ 50' : 
-          nivelFidelidade === 'PRATA' ? 'Frete grátis acima de R$ 100' : 'Disponível em níveis superiores',
-          nivelFidelidade === 'DIAMANTE' || nivelFidelidade === 'OURO' || nivelFidelidade === 'PRATA',
-          nivelFidelidade === 'DIAMANTE' ? 'diamond' : 
-          nivelFidelidade === 'OURO' ? 'gold' : 
-          nivelFidelidade === 'PRATA' ? 'silver' : 'upcoming'
-        )}
-        
-        ${this.createBenefitCard(
-          'percent',
-          'Descontos Exclusivos',
-          isDiamond ? '20% de desconto em todos produtos' : 
-          nivelFidelidade === 'OURO' ? '15% de desconto' : 
-          nivelFidelidade === 'PRATA' ? '10% de desconto' : '5% de desconto',
-          true,
-          nivelFidelidade.toLowerCase()
-        )}
-        
-        ${this.createBenefitCard(
-          'star',
-          'Programa VIP',
-          isDiamond ? 'Acesso exclusivo a produtos e eventos' : 
-          'Desbloqueie com nível Diamante',
-          isDiamond,
-          isDiamond ? 'diamond' : 'upcoming'
-        )}
-        
-        ${isDiamond ? this.createDiamondExclusiveBenefit() : ''}
-        
-        ${this.createNextTierBenefit(nivelFidelidade, pontos)}
-      </div>
+      this._showLoading();
       
-      ${isBirthday ? this.createBirthdayBenefitOptions(isDiamond) : ''}
-    `;
-
-    if (isBirthday) {
-      this.setupBenefitSelection(isDiamond);
-    }
-  }
-
-  createDiamondExclusiveBenefit() {
-    return `
-      <div class="benefit-card diamond-benefit active">
-        <div class="benefit-icon">
-          <i class="fas fa-gem"></i>
-        </div>
-        <h4>Brinde Diamante</h4>
-        <p>Receba um brinde exclusivo a cada 3 meses</p>
-        <div class="benefit-status active">Disponível</div>
-        <button class="btn-diamond claim-gift">
-          <i class="fas fa-gift"></i> Resgatar Brinde
-        </button>
-      </div>
-    `;
-  }
-
-  createBenefitCard(icon, title, description, isActive, type, isDiamond = false) {
-    return `
-      <div class="benefit-card ${type}-benefit ${isActive ? 'active' : ''}">
-        <div class="benefit-icon">
-          <i class="fas fa-${icon}"></i>
-        </div>
-        <h4>${title}</h4>
-        <p>${description}</p>
-        ${isActive ? '<div class="benefit-status active">Disponível</div>' : ''}
-        ${isActive && isDiamond ? '<div class="diamond-exclusive"><i class="fas fa-gem"></i> Exclusivo Diamante</div>' : ''}
-      </div>
-    `;
-  }
-
-  createNextTierBenefit(currentLevel, currentPoints) {
-    const levels = {
-      BRONZE: { 
-        next: 'PRATA', 
-        min: 1000, 
-        benefits: ['10% desconto', 'Frete grátis acima R$100'],
-        icon: 'shield-alt'
-      },
-      PRATA: { 
-        next: 'OURO', 
-        min: 5000, 
-        benefits: ['15% desconto', 'Frete grátis acima R$50', 'Presente de aniversário'],
-        icon: 'crown'
-      },
-      OURO: { 
-        next: 'DIAMANTE', 
-        min: 15000, 
-        benefits: ['20% desconto', 'Frete grátis ilimitado', 'Presente premium', 'Brinde exclusivo'],
-        icon: 'gem'
-      },
-      DIAMANTE: null
-    };
-
-    const nextLevel = levels[currentLevel];
-    if (!nextLevel) return '';
-
-    const progress = (currentPoints / nextLevel.min) * 100;
-    const pointsNeeded = nextLevel.min - currentPoints;
-
-    return `
-      <div class="benefit-card upcoming-benefit">
-        <div class="benefit-icon">
-          <i class="fas fa-${nextLevel.icon}"></i>
-        </div>
-        <h4>Próximo Nível: ${nextLevel.next}</h4>
-        <p>Desbloqueie benefícios exclusivos:</p>
-        <ul>
-          ${nextLevel.benefits.map(b => `<li><i class="fas fa-check"></i> ${b}</li>`).join('')}
-        </ul>
-        <div class="progress-container">
-          <div class="progress-fill" style="width: ${Math.min(100, progress)}%"></div>
-        </div>
-        <div class="progress-text">Faltam ${pointsNeeded.toLocaleString('pt-BR')} pontos</div>
-      </div>
-    `;
-  }
-
-  createBirthdayBenefitOptions(isDiamond = false) {
-    const diamondOptions = isDiamond ? `
-      <div class="benefit-option" data-benefit="diamond-gift">
-        <i class="fas fa-gem"></i>
-        <h5>Brinde Diamante</h5>
-        <p>Produto exclusivo da coleção premium</p>
-        <span class="badge-diamond">Exclusivo</span>
-      </div>
+      // Simulate API call - replace with real API
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      <div class="benefit-option" data-benefit="personal-shopper">
-        <i class="fas fa-concierge-bell"></i>
-        <h5>Personal Shopper</h5>
-        <p>Atendimento VIP por 1 mês</p>
-        <span class="badge-diamond">Exclusivo</span>
-      </div>
-    ` : '';
-
-    return `
-      <div class="birthday-benefit">
-        <h4><i class="fas fa-birthday-cake"></i> Escolha seu Presente de Aniversário!</h4>
-        <p>Parabéns! Selecione um dos benefícios abaixo:</p>
-        
-        <div class="benefit-options">
-          <div class="benefit-option" data-benefit="frete">
-            <i class="fas fa-truck"></i>
-            <h5>Frete Grátis por 30 dias</h5>
-            <p>Em todos os pedidos deste mês</p>
-          </div>
-          
-          <div class="benefit-option" data-benefit="desconto">
-            <i class="fas fa-percentage"></i>
-            <h5>${isDiamond ? '25%' : '20%'} de Desconto</h5>
-            <p>No seu próximo pedido</p>
-          </div>
-          
-          <div class="benefit-option" data-benefit="pontos">
-            <i class="fas fa-coins"></i>
-            <h5>${isDiamond ? '2000' : '1000'} Pontos Extras</h5>
-            <p>Adicionados à sua conta</p>
-          </div>
-          
-          ${diamondOptions}
-        </div>
-        
-        <button id="confirm-benefit" class="btn-gold" disabled>
-          <i class="fas fa-gift"></i> Confirmar Escolha
-        </button>
-      </div>
-    `;
-  }
-
-  setupBenefitSelection(isDiamond = false) {
-    const options = document.querySelectorAll('.benefit-option');
-    const confirmBtn = document.getElementById('confirm-benefit');
-    let selectedBenefit = null;
-
-    options.forEach(option => {
-      option.addEventListener('click', () => {
-        options.forEach(opt => opt.classList.remove('selected'));
-        option.classList.add('selected');
-        selectedBenefit = option.dataset.benefit;
-        confirmBtn.disabled = false;
-        
-        if (isDiamond && (selectedBenefit === 'diamond-gift' || selectedBenefit === 'personal-shopper')) {
-          confirmBtn.className = 'btn-diamond';
-        } else {
-          confirmBtn.className = 'btn-gold';
+      // Sample data - replace with real API response
+      const orders = [
+        {
+          id: 'ORD-12345',
+          date: new Date(),
+          status: 'delivered',
+          total: 199.90,
+          items: [
+            { name: 'Produto A', quantity: 1, price: 99.90 },
+            { name: 'Produto B', quantity: 2, price: 50.00 }
+          ]
+        },
+        {
+          id: 'ORD-67890',
+          date: new Date(Date.now() - 86400000),
+          status: 'processing',
+          total: 349.90,
+          items: [
+            { name: 'Produto C', quantity: 1, price: 349.90 }
+          ]
         }
-      });
-    });
-
-    confirmBtn?.addEventListener('click', () => {
-      if (!selectedBenefit) return;
+      ];
       
-      let message = 'Presente selecionado com sucesso!';
-      if (isDiamond && selectedBenefit === 'diamond-gift') {
-        message = '🎁 Seu brinde Diamante será enviado em breve!';
-      } else if (isDiamond && selectedBenefit === 'personal-shopper') {
-        message = '👔 Seu personal shopper entrará em contato em breve!';
-      }
-      
-      this.showConfirmation(message);
-      
-      // Aqui você pode adicionar a lógica para salvar a escolha do benefício
-      setTimeout(() => {
-        this.close();
-      }, 3000);
-    });
-
-    // Configurar o botão de resgate do brinde Diamante
-    const claimBtn = document.querySelector('.claim-gift');
-    if (claimBtn) {
-      claimBtn.addEventListener('click', () => {
-        this.showConfirmation('Seu brinde Diamante será enviado em breve! 🚀');
-      });
+      this.elements.ordersContent.innerHTML = `
+        <div class="orders-list">
+          ${orders.map(order => this._renderOrder(order)).join('')}
+        </div>
+      `;
+    } catch (error) {
+      console.error('Error loading orders:', error);
+      this._showError('Erro ao carregar histórico de pedidos');
+    } finally {
+      this._hideLoading();
     }
   }
 
-  // ... (mantive os métodos restantes como checkBirthday, getNextTierMessage, 
-  // showConfirmation, showError, close, etc. sem alterações)
-
-  close() {
-    if (!this.isOpen) return;
+  _renderOrder(order) {
+    const statusMap = {
+      'delivered': { class: 'delivered', text: 'Entregue' },
+      'processing': { class: 'processing', text: 'Processando' },
+      'canceled': { class: 'canceled', text: 'Cancelado' }
+    };
     
-    console.log('[ProfileModal] Fechando modal...');
-    this.modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
-    this.isOpen = false;
+    const status = statusMap[order.status] || { class: 'processing', text: order.status };
+    const formattedDate = this._formatDate(order.date);
+    
+    return `
+      <div class="order-card">
+        <div class="order-header">
+          <span class="order-id">Pedido #${order.id}</span>
+          <span class="order-date">${formattedDate}</span>
+          <span class="order-status ${status.class}">${status.text}</span>
+        </div>
+        <div class="order-body">
+          <div class="order-total">Total: R$ ${order.total.toFixed(2)}</div>
+          <button class="order-details-btn" data-order="${order.id}">
+            Detalhes
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  async loadAddresses() {
+    try {
+      if (!this.elements.addressesContent) return;
+      
+      this._showLoading();
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Sample data
+      this.elements.addressesContent.innerHTML = `
+        <div class="addresses-grid">
+          <div class="address-card primary">
+            <div class="address-header">
+              <h3>Endereço Principal</h3>
+              <div class="address-actions">
+                <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                <button class="btn-icon"><i class="fas fa-trash"></i></button>
+              </div>
+            </div>
+            <div class="address-body">
+              <p>${this.currentUser.address?.street || ''}, ${this.currentUser.address?.number || ''}</p>
+              ${this.currentUser.address?.complement ? `<p>${this.currentUser.address.complement}</p>` : ''}
+              <p>${this.currentUser.address?.neighborhood || ''}</p>
+              <p>${this.currentUser.address?.city || ''} - ${this.currentUser.address?.state || ''}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('Error loading addresses:', error);
+      this._showError('Erro ao carregar endereços');
+    } finally {
+      this._hideLoading();
+    }
+  }
+
+  async loadFidelityData() {
+    try {
+      if (!this.elements.fidelityContent) return;
+      
+      this._showLoading();
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Sample data
+      this.elements.fidelityContent.innerHTML = `
+        <section class="profile-section">
+          <h2><i class="fas fa-gem"></i> Programa de Fidelidade Exclusive</h2>
+          <div class="fidelity-card">
+            <div class="fidelity-header">
+              <div class="fidelity-level">
+                <span id="profile-tier" class="level-badge ${this.currentUser.tier || 'bronze'}">
+                  ${this.currentUser.tier ? this.currentUser.tier.toUpperCase() : 'BRONZE'}
+                </span>
+                <div class="level-progress">
+                  <div class="progress-bar">
+                    <div id="loyalty-progress-bar" class="progress-fill" style="width: ${this._calculateProgress()}%"></div>
+                  </div>
+                  <span id="next-level-label">${this._getNextLevelText()}</span>
+                </div>
+              </div>
+              <div class="fidelity-points">
+                <span id="profile-points">${this.currentUser.points ? this.currentUser.points.toLocaleString('pt-BR') : '0'} pontos</span>
+              </div>
+            </div>
+            
+            <div class="fidelity-benefits">
+              <div class="benefit">
+                <i class="fas fa-tag"></i>
+                <span id="current-discount">${this._getDiscountForTier()}</span>
+              </div>
+              <div class="benefit">
+                <i class="fas fa-bolt"></i>
+                <span id="current-multiplier">${this._getMultiplierForTier()}</span>
+              </div>
+              ${this._getAdditionalBenefits()}
+            </div>
+            
+            <div class="fidelity-actions">
+              <button class="btn-gold btn-resgatar" data-benefit="frete_gratis">
+                <i class="fas fa-truck"></i> Resgatar Frete Grátis
+              </button>
+              <button class="btn-gold btn-resgatar" data-benefit="desconto_10">
+                <i class="fas fa-percentage"></i> Resgatar 10% de Desconto
+              </button>
+              <button id="btn-como-ganhar-pontos" class="btn-outline">
+                <i class="fas fa-info-circle"></i> Como Ganhar Mais Pontos
+              </button>
+            </div>
+          </div>
+
+          <div class="benefits-section">
+            <h3><i class="fas fa-star"></i> Seus Próximos Benefícios</h3>
+            <div class="benefits-grid">
+              ${this._getUpcomingBenefits()}
+            </div>
+          </div>
+        </section>
+      `;
+
+      // Configura os eventos dos botões de fidelidade
+      this.setupFidelityActions();
+    } catch (error) {
+      console.error('Error loading fidelity data:', error);
+      this._showError('Erro ao carregar programa de fidelidade');
+    } finally {
+      this._hideLoading();
+    }
+  }
+
+  _calculateProgress() {
+    const points = this.currentUser.points || 0;
+    const tier = this.currentUser.tier || 'bronze';
+    
+    if (tier === 'bronze') {
+      return Math.min(100, (points / 1000) * 100);
+    } else if (tier === 'silver') {
+      return Math.min(100, ((points - 1000) / 1500) * 100);
+    } else if (tier === 'gold') {
+      return Math.min(100, ((points - 2500) / 2000) * 100);
+    } else {
+      return 100;
+    }
+  }
+
+  _getNextLevelText() {
+    const tier = this.currentUser.tier || 'bronze';
+    const points = this.currentUser.points || 0;
+    
+    if (tier === 'bronze') {
+      const remaining = 1000 - points;
+      return remaining > 0 ? `Faltam ${remaining} pontos para PRATA` : 'Você alcançou o nível PRATA!';
+    } else if (tier === 'silver') {
+      const remaining = 2500 - points;
+      return remaining > 0 ? `Faltam ${remaining} pontos para OURO` : 'Você alcançou o nível OURO!';
+    } else if (tier === 'gold') {
+      const remaining = 4500 - points;
+      return remaining > 0 ? `Faltam ${remaining} pontos para PLATINA` : 'Você alcançou o nível PLATINA!';
+    } else {
+      return 'Você atingiu o nível máximo!';
+    }
+  }
+
+  _getDiscountForTier() {
+    const tier = this.currentUser.tier || 'bronze';
+    switch(tier) {
+      case 'bronze': return 'Desconto: 5% em todas as compras';
+      case 'silver': return 'Desconto: 10% em todas as compras';
+      case 'gold': return 'Desconto: 15% em todas as compras';
+      case 'platinum': return 'Desconto: 20% em todas as compras';
+      default: return 'Desconto: 5% em todas as compras';
+    }
+  }
+
+  _getMultiplierForTier() {
+    const tier = this.currentUser.tier || 'bronze';
+    switch(tier) {
+      case 'bronze': return 'Multiplicador: 1x pontos';
+      case 'silver': return 'Multiplicador: 1.5x pontos';
+      case 'gold': return 'Multiplicador: 2x pontos';
+      case 'platinum': return 'Multiplicador: 2.5x pontos';
+      default: return 'Multiplicador: 1x pontos';
+    }
+  }
+
+  _getAdditionalBenefits() {
+    const tier = this.currentUser.tier || 'bronze';
+    if (tier === 'gold' || tier === 'platinum') {
+      return `
+        <div class="benefit">
+          <i class="fas fa-gift"></i>
+          <span>Presente de aniversário</span>
+        </div>
+        <div class="benefit">
+          <i class="fas fa-concierge-bell"></i>
+          <span>Atendimento prioritário 24/7</span>
+        </div>
+      `;
+    }
+    return '';
+  }
+
+  _getUpcomingBenefits() {
+    const tier = this.currentUser.tier || 'bronze';
+    if (tier === 'bronze') {
+      return `
+        <div class="benefit-card upcoming">
+          <div class="benefit-icon">
+            <i class="fas fa-tag"></i>
+          </div>
+          <h4>Nível Prata</h4>
+          <p>Desconto de 10% em todas as compras</p>
+          <div class="progress-container">
+            <div class="progress-fill-benefit" style="width: ${this._calculateProgress()}%"></div>
+          </div>
+          <span class="benefit-status">Disponível em ${1000 - (this.currentUser.points || 0)} pontos</span>
+        </div>
+      `;
+    } else if (tier === 'silver') {
+      return `
+        <div class="benefit-card upcoming">
+          <div class="benefit-icon">
+            <i class="fas fa-plane"></i>
+          </div>
+          <h4>Nível Ouro</h4>
+          <p>Frete grátis em todas as compras</p>
+          <div class="progress-container">
+            <div class="progress-fill-benefit" style="width: ${this._calculateProgress()}%"></div>
+          </div>
+          <span class="benefit-status">Disponível em ${2500 - (this.currentUser.points || 0)} pontos</span>
+        </div>
+      `;
+    } else if (tier === 'gold') {
+      return `
+        <div class="benefit-card upcoming">
+          <div class="benefit-icon">
+            <i class="fas fa-gem"></i>
+          </div>
+          <h4>Nível Platina</h4>
+          <p>Acesso a produtos exclusivos e eventos VIP</p>
+          <div class="progress-container">
+            <div class="progress-fill-benefit" style="width: ${this._calculateProgress()}%"></div>
+          </div>
+          <span class="benefit-status">Disponível em ${4500 - (this.currentUser.points || 0)} pontos</span>
+        </div>
+      `;
+    }
+    return '';
+  }
+
+  async loadPreferences() {
+    try {
+      if (!this.elements.preferencesContent) return;
+      
+      this._showLoading();
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Sample data
+      this.elements.preferencesContent.innerHTML = `
+        <section class="profile-section">
+          <h2><i class="fas fa-sliders-h"></i> Minhas Preferências</h2>
+          <div class="preferences-grid">
+            <div class="preference-card">
+              <h3><i class="fas fa-envelope"></i> Comunicação</h3>
+              <div class="preference-option">
+                <label class="switch">
+                  <input type="checkbox" checked>
+                  <span class="slider round"></span>
+                </label>
+                <span>Receber newsletters</span>
+              </div>
+              <div class="preference-option">
+                <label class="switch">
+                  <input type="checkbox" checked>
+                  <span class="slider round"></span>
+                </label>
+                <span>Ofertas exclusivas</span>
+              </div>
+            </div>
+            
+            <div class="preference-card">
+              <h3><i class="fas fa-bell"></i> Notificações</h3>
+              <div class="preference-option">
+                <label class="switch">
+                  <input type="checkbox" checked>
+                  <span class="slider round"></span>
+                </label>
+                <span>Status de pedidos</span>
+              </div>
+              <div class="preference-option">
+                <label class="switch">
+                  <input type="checkbox">
+                  <span class="slider round"></span>
+                </label>
+                <span>Lembretes de pagamento</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    } catch (error) {
+      console.error('Error loading preferences:', error);
+      this._showError('Erro ao carregar preferências');
+    } finally {
+      this._hideLoading();
+    }
+  }
+
+  performLogout() {
+    try {
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_user');
+      localStorage.removeItem('kideliCart');
+      
+      document.querySelectorAll('.auth-button').forEach(btn => {
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+        btn.classList.remove('logged-in');
+      });
+      
+      this.close();
+      setTimeout(() => window.location.reload(), 300);
+      
+      this.showNotification('Você foi desconectado', 'info');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      this.showNotification('Erro ao sair da conta', 'error');
+    }
+  }
+
+  showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+      <i class="fas ${
+        type === 'info' ? 'fa-info-circle' : 
+        type === 'error' ? 'fa-exclamation-circle' : 
+        'fa-check-circle'
+      }"></i>
+      <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.classList.add('show');
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }, 10);
+  }
+
+  showAuthModal(mode = 'login') {
+    if (window.Auth?.open) {
+      window.Auth.open(mode);
+    } else {
+      console.error('Authentication system not available');
+      this._showError('Sistema de login indisponível');
+    }
   }
 }
 
+// Safe initialization
 document.addEventListener('DOMContentLoaded', () => {
-  if (!window.profileModal) {
-    window.profileModal = new ProfileModal();
-    
-    document.getElementById('authButton')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      window.profileModal?.open();
-    });
+  try {
+    if (!window.profileModal) {
+      window.profileModal = new ProfileModal();
+      
+      // Global handler to open modal
+      document.addEventListener('click', (e) => {
+        const profileBtn = e.target.closest('[data-action="open-profile"]');
+        if (profileBtn && window.profileModal?.open) {
+          e.preventDefault();
+          const tab = profileBtn.dataset.tab || 'profile';
+          window.profileModal.open(tab);
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error initializing ProfileModal:', error);
   }
 });

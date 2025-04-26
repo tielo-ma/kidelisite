@@ -4,90 +4,352 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meu Perfil - KiDeli</title>
-  <link rel="stylesheet" href="css/profile.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="css/profile-modal.css">
 </head>
 <body>
-  <div class="profile-container">
-    <!-- Cabeçalho -->
-    <header class="profile-header">
-      <h1>Meu Perfil</h1>
-      <button class="btn-edit" onclick="Profile.editProfile()">
-        <i class="fas fa-edit"></i> Editar
-      </button>
-    </header>
-
-    <!-- Seções -->
-    <div class="profile-sections">
-      <!-- Informações Pessoais -->
-      <section class="profile-section">
-        <h2><i class="fas fa-user"></i> Informações Pessoais</h2>
-        <div class="info-grid">
-          <div>
-            <label>Nome</label>
-            <p id="profile-name"></p>
-          </div>
-          <div>
-            <label>E-mail</label>
-            <p id="profile-email"></p>
-          </div>
-          <div>
-            <label>Celular</label>
-            <p id="profile-phone"></p>
-          </div>
-          <div>
-            <label>Data de Nascimento</label>
-            <p id="profile-birthday"></p>
+  <!-- Modal principal -->
+  <div id="profileModal" class="profile-modal" style="display: none;">
+    <div class="profile-modal-content">
+      <span id="profile-close" class="profile-close">&times;</span>
+      
+      <!-- Cabeçalho Premium -->
+      <header class="profile-header">
+        <div class="header-content">
+          <h1><i class="fas fa-user-shield"></i> Meu Perfil <span class="premium-badge">PREMIUM</span></h1>
+          <div class="header-actions">
+            <button id="edit-profile-btn" class="btn-edit">
+              <i class="fas fa-edit"></i> Editar Perfil
+            </button>
+            <button id="save-profile-btn" class="btn-save" style="display: none;">
+              <i class="fas fa-save"></i> Salvar Alterações
+            </button>
           </div>
         </div>
-      </section>
-
-      <!-- Programa de Fidelidade -->
-      <section class="profile-section">
-        <h2><i class="fas fa-award"></i> Programa de Fidelidade</h2>
-        <div class="fidelity-card">
-          <div class="fidelity-badge" id="fidelity-level"></div>
-          <div class="fidelity-info">
-            <div>
-              <label>Pontos</label>
-              <p id="fidelity-points"></p>
+        
+        <div class="user-badge">
+          <div class="avatar-container">
+            <div class="avatar-upload">
+              <div id="avatar-preview" class="avatar-preview">
+                <span id="user-initials">US</span>
+              </div>
+              <input type="file" id="avatar-input" accept="image/*" class="avatar-input">
+              <label for="avatar-input" class="avatar-edit">
+                <i class="fas fa-camera"></i>
+              </label>
             </div>
-            <div>
-              <label>Desconto</label>
-              <p id="fidelity-discount"></p>
-            </div>
-            <div>
-              <label>Multiplicador</label>
-              <p id="fidelity-multiplier"></p>
+            <div id="vip-level-badge" class="vip-badge platinum">
+              <i class="fas fa-crown vip-icon"></i>
+              <span id="vip-level">PLATINUM</span>
             </div>
           </div>
-          <div class="fidelity-progress">
-            <div class="progress-bar">
-              <div id="fidelity-progress" class="progress"></div>
+        </div>
+      </header>
+  
+      <!-- Navegação por abas premium -->
+      <nav id="profile-tabs" class="profile-tabs">
+        <button class="tab-button active" data-tab="profile">
+          <i class="fas fa-user-tie"></i> Perfil
+        </button>
+        <button class="tab-button" data-tab="orders">
+          <i class="fas fa-receipt"></i> Pedidos
+          <span class="tab-notification">3</span>
+        </button>
+        <button class="tab-button" data-tab="addresses">
+          <i class="fas fa-map-marked-alt"></i> Endereços
+        </button>
+        <button class="tab-button" data-tab="fidelity">
+          <i class="fas fa-gem"></i> Fidelidade
+        </button>
+        <button class="tab-button" data-tab="preferences">
+          <i class="fas fa-sliders-h"></i> Preferências
+        </button>
+      </nav>
+  
+      <!-- Conteúdo das abas -->
+      <div id="profile-tab-content" class="tab-content-container">
+        <!-- Tab Perfil -->
+        <div id="profile-content" class="tab-content active">
+          <section class="profile-section">
+            <h2><i class="fas fa-user-tie"></i> Informações Pessoais</h2>
+            <div class="info-grid">
+              <div class="info-card">
+                <label><i class="fas fa-signature"></i> Nome Completo</label>
+                <div id="profile-name" class="info-content editable-field" data-field="name">Carregando...</div>
+              </div>
+              
+              <div class="info-card">
+                <label><i class="fas fa-envelope"></i> E-mail</label>
+                <div id="profile-email" class="info-content">Carregando...</div>
+              </div>
+              
+              <div class="info-card">
+                <label><i class="fas fa-mobile-alt"></i> Celular</label>
+                <div id="profile-phone" class="info-content editable-field" data-field="phone">Carregando...</div>
+              </div>
+              
+              <div class="info-card">
+                <label><i class="fas fa-birthday-cake"></i> Data de Nascimento</label>
+                <div id="profile-birthday" class="info-content editable-field" data-field="birthday">Carregando...</div>
+              </div>
+              
+              <div class="info-card">
+                <label><i class="fas fa-id-card"></i> CPF</label>
+                <div id="profile-cpf" class="info-content editable-field" data-field="cpf">Carregando...</div>
+              </div>
             </div>
-            <small>Progresso para o próximo nível</small>
-          </div>
+          </section>
         </div>
-      </section>
+  
+        <!-- Tab Pedidos -->
+        <div id="orders-content" class="tab-content">
+          <section class="profile-section">
+            <div class="section-header">
+              <h2><i class="fas fa-receipt"></i> Histórico de Pedidos</h2>
+              <div class="order-filters">
+                <select class="elegant-select">
+                  <option>Últimos 3 meses</option>
+                  <option>2023</option>
+                  <option>2022</option>
+                </select>
+                <select class="elegant-select">
+                  <option>Todos os status</option>
+                  <option>Entregues</option>
+                  <option>Em andamento</option>
+                </select>
+              </div>
+            </div>
+            <div id="orders-list" class="orders-list">
+              <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <p>Nenhum pedido encontrado</p>
+                <button class="btn-gold" onclick="window.location.href='/produtos'">
+                  <i class="fas fa-shopping-bag"></i> Ver Coleção Exclusiva
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+  
+        <!-- Tab Endereços -->
+        <div id="addresses-content" class="tab-content">
+          <section class="profile-section">
+            <div class="section-header">
+              <h2><i class="fas fa-map-marked-alt"></i> Meus Endereços</h2>
+              <button class="btn-gold btn-add-address">
+                <i class="fas fa-plus"></i> Novo Endereço
+              </button>
+            </div>
+            <div class="addresses-grid">
+              <div class="address-card primary">
+                <div class="address-header">
+                  <h3>Endereço Principal</h3>
+                  <div class="address-actions">
+                    <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon"><i class="fas fa-trash"></i></button>
+                  </div>
+                </div>
+                <div class="address-body">
+                  <p id="profile-rua" class="editable-field" data-field="rua">Carregando...</p>
+                  <p id="profile-numero" class="editable-field" data-field="numero">Carregando...</p>
+                  <p id="profile-complemento" class="editable-field" data-field="complemento">Carregando...</p>
+                  <p id="profile-bairro" class="editable-field" data-field="bairro">Carregando...</p>
+                  <p id="profile-cidade" class="editable-field" data-field="cidade">Carregando...</p>
+                  <p id="profile-uf" class="editable-field" data-field="uf">Carregando...</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+  
+        <!-- Tab Fidelidade -->
+        <div id="fidelity-content" class="tab-content">
+          <section class="profile-section">
+            <h2><i class="fas fa-gem"></i> Programa de Fidelidade Exclusive</h2>
+            <div class="fidelity-card">
+              <div class="fidelity-header">
+                <div class="fidelity-level">
+                  <span id="profile-tier" class="level-badge platinum">PLATINUM</span>
+                  <div class="level-progress">
+                    <div class="progress-bar">
+                      <div id="loyalty-progress-bar" class="progress-fill" style="width: 85%"></div>
+                    </div>
+                    <span id="next-level-label">Faltam 150 pontos para DIAMOND</span>
+                  </div>
+                </div>
+                <div class="fidelity-points">
+                  <span id="profile-points">1,850 pontos</span>
+                </div>
+              </div>
+              
+              <div class="fidelity-benefits">
+                <div class="benefit">
+                  <i class="fas fa-tag"></i>
+                  <span id="current-discount">Desconto: 15% em todas as compras</span>
+                </div>
+                <div class="benefit">
+                  <i class="fas fa-bolt"></i>
+                  <span id="current-multiplier">Multiplicador: 2.5x pontos</span>
+                </div>
+                <div class="benefit">
+                  <i class="fas fa-gift"></i>
+                  <span>Presente de aniversário</span>
+                </div>
+                <div class="benefit">
+                  <i class="fas fa-concierge-bell"></i>
+                  <span>Atendimento prioritário 24/7</span>
+                </div>
+              </div>
+              
+              <div class="fidelity-actions">
+                <button class="btn-gold btn-resgatar" data-benefit="frete_gratis">
+                  <i class="fas fa-truck"></i> Resgatar Frete Grátis
+                </button>
+                <button class="btn-gold btn-resgatar" data-benefit="desconto_10">
+                  <i class="fas fa-percentage"></i> Resgatar 10% de Desconto
+                </button>
+                <button id="btn-como-ganhar-pontos" class="btn-outline">
+                  <i class="fas fa-info-circle"></i> Como Ganhar Mais Pontos
+                </button>
+              </div>
+            </div>
 
-      <!-- Histórico de Pedidos -->
-      <section class="profile-section">
-        <h2><i class="fas fa-history"></i> Histórico de Pedidos</h2>
-        <div id="order-history" class="order-history">
-          <!-- Preenchido pelo JavaScript -->
+            <div class="benefits-section">
+              <h3><i class="fas fa-star"></i> Seus Próximos Benefícios</h3>
+              <div class="benefits-grid">
+                <div class="benefit-card upcoming">
+                  <div class="benefit-icon">
+                    <i class="fas fa-plane"></i>
+                  </div>
+                  <h4>Nível Diamond</h4>
+                  <p>Upgrade grátis para frete expresso em todas as compras</p>
+                  <div class="progress-container">
+                    <div class="progress-fill-benefit" style="width: 85%"></div>
+                  </div>
+                  <span class="benefit-status">Disponível em 150 pontos</span>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-      </section>
 
-      <!-- Formas de Pagamento -->
-      <section class="profile-section">
-        <h2><i class="fas fa-credit-card"></i> Formas de Pagamento</h2>
-        <div id="payment-methods" class="payment-methods">
-          <!-- Preenchido pelo JavaScript -->
+        <!-- Tab Preferências -->
+        <div id="preferences-content" class="tab-content">
+          <section class="profile-section">
+            <h2><i class="fas fa-sliders-h"></i> Minhas Preferências</h2>
+            <div class="preferences-grid">
+              <div class="preference-card">
+                <h3><i class="fas fa-envelope"></i> Comunicação</h3>
+                <div class="preference-option">
+                  <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider round"></span>
+                  </label>
+                  <span>Receber newsletters</span>
+                </div>
+                <div class="preference-option">
+                  <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider round"></span>
+                  </label>
+                  <span>Ofertas exclusivas</span>
+                </div>
+              </div>
+              
+              <div class="preference-card">
+                <h3><i class="fas fa-bell"></i> Notificações</h3>
+                <div class="preference-option">
+                  <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider round"></span>
+                  </label>
+                  <span>Status de pedidos</span>
+                </div>
+                <div class="preference-option">
+                  <label class="switch">
+                    <input type="checkbox">
+                    <span class="slider round"></span>
+                  </label>
+                  <span>Lembretes de pagamento</span>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
+  
+      <!-- Rodapé -->
+      <footer class="profile-footer">
+        <button id="logout-btn" class="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> Sair da Conta
+        </button>
+      </footer>
+  
+      <!-- Mensagem de login necessário -->
+      <div id="login-required-message" class="login-message" style="display: none;">
+        <div class="login-message-content">
+          <i class="fas fa-lock"></i>
+          <h3>Acesso Exclusivo</h3>
+          <p>Para acessar seu perfil premium, faça login ou cadastre-se</p>
+          <button id="goToLoginBtn" class="btn-gold">
+            <i class="fas fa-sign-in-alt"></i> Acessar Minha Conta
+          </button>
+        </div>
+      </div>
+  
+      <!-- Loading state -->
+      <div id="profile-loader" class="profile-loader" style="display: none;">
+        <div class="spinner"></div>
+        <p>Carregando seu perfil exclusivo...</p>
+      </div>
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="js/auth.js"></script>
-  <script src="js/profile.js"></script>
+  <script src="js/profile-modal.js" defer></script>
+  
+  <!-- Inicialização -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Inicializa o modal de perfil
+      if (!window.profileModal) {
+        window.profileModal = new ProfileModal();
+      }
+      
+      // Adiciona listener para abrir o modal
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('[data-action="open-profile"]')) {
+          e.preventDefault();
+          window.profileModal.open();
+        }
+      });
+
+      // Avatar upload preview
+      const avatarInput = document.getElementById('avatar-input');
+      const avatarPreview = document.getElementById('avatar-preview');
+      
+      if (avatarInput && avatarPreview) {
+        avatarInput.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              avatarPreview.innerHTML = '';
+              const img = document.createElement('img');
+              img.src = event.target.result;
+              img.style.width = '100%';
+              img.style.height = '100%';
+              img.style.objectFit = 'cover';
+              img.style.borderRadius = '50%';
+              avatarPreview.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

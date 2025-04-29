@@ -8,6 +8,12 @@ class ProfileModal {
       avatarChanged: false
     };
 
+    this.statusMap = {
+      'delivered': { class: 'delivered', text: 'Entregue' },
+      'processing': { class: 'processing', text: 'Processando' },
+      'canceled': { class: 'canceled', text: 'Cancelado' }
+    };
+
     this.currentUser = null;
     this.elements = {};
     this.avatarFile = null;
@@ -1170,8 +1176,18 @@ class ProfileModal {
           status: 'delivered',
           total: 199.90,
           items: [
-            { name: 'Produto A', quantity: 1, price: 99.90 },
-            { name: 'Produto B', quantity: 2, price: 50.00 }
+            { 
+              name: 'Torta de Morango Premium', 
+              quantity: 1, 
+              price: 99.90,
+              image: './assets/image/bl.jpeg'
+            },
+            { 
+              name: 'Caixa de Bombons', 
+              quantity: 2, 
+              price: 50.00,
+              image: './assets/image/bl.jpeg'
+            }
           ]
         },
         {
@@ -1180,7 +1196,12 @@ class ProfileModal {
           status: 'processing',
           total: 349.90,
           items: [
-            { name: 'Produto C', quantity: 1, price: 349.90 }
+            { 
+              name: 'Torta de Chocolate Belga', 
+              quantity: 1, 
+              price: 349.90,
+              image: './assets/image/bl.jpeg'
+            }
           ]
         }
       ];
@@ -1190,6 +1211,22 @@ class ProfileModal {
           ${orders.map(order => this._renderOrder(order)).join('')}
         </div>
       `;
+      
+      // Adicionar event listeners para os botões de detalhes
+      document.querySelectorAll('.order-details-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const orderId = btn.dataset.order;
+          const order = orders.find(o => o.id === orderId);
+          if (order) {
+            this.showOrderDetails(order); // Passa o objeto completo
+          } else {
+            console.error('Pedido não encontrado:', orderId);
+            this.showNotification('Pedido não encontrado', 'error');
+          }
+        });
+      });
+      
     } catch (error) {
       console.error('Error loading orders:', error);
       this._showError('Erro ao carregar histórico de pedidos');
@@ -1199,13 +1236,7 @@ class ProfileModal {
   }
 
   _renderOrder(order) {
-    const statusMap = {
-      'delivered': { class: 'delivered', text: 'Entregue' },
-      'processing': { class: 'processing', text: 'Processando' },
-      'canceled': { class: 'canceled', text: 'Cancelado' }
-    };
-    
-    const status = statusMap[order.status] || { class: 'processing', text: order.status };
+    const status = this.statusMap[order.status] || { class: 'processing', text: order.status };
     const formattedDate = this._formatDate(order.date);
     
     return `
@@ -1218,11 +1249,136 @@ class ProfileModal {
         <div class="order-body">
           <div class="order-total">Total: R$ ${order.total.toFixed(2)}</div>
           <button class="order-details-btn" data-order="${order.id}">
-            Detalhes
+            <i class="fas fa-search"></i> Detalhes
           </button>
         </div>
       </div>
     `;
+  }
+
+  async showOrderDetails(order) {
+    try {
+      if (!order) {
+        throw new Error('Objeto de pedido inválido');
+      }
+  
+      this._showLoading();
+      
+      const status = this.statusMap[order.status] || { class: 'processing', text: 'Status desconhecido' };
+  
+      // Verificação segura para valores numéricos
+      const safeTotal = typeof order.total === 'number' ? order.total.toFixed(2) : '0.00';
+      const safeDate = order.date ? this._formatDate(order.date) : 'Data não disponível';
+  
+      const modalContent = `
+        <div class="order-details-modal">
+          <div class="order-details-header">
+            <h3>Detalhes do Pedido #${order.id || 'N/A'}</h3>
+            <span class="order-status ${status.class}">${status.text}</span>
+          </div>
+          
+          <div class="order-details-body">
+            <div class="order-info-section">
+              <div class="info-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Data: ${safeDate}</span>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Total: R$ ${safeTotal}</span>
+              </div>
+            </div>
+            
+            <div class="order-items-section">
+              <h4>Itens do Pedido</h4>
+              ${(order.items || []).map(item => `
+                <div class="order-item">
+                  <div class="item-image">
+                    <img src="${item.image || this.placeholderImage}" alt="${item.name || 'Produto'}">
+                  </div>
+                  <div class="item-info">
+                    <h5>${item.name || 'Produto sem nome'}</h5>
+                    <p>Quantidade: ${item.quantity || 0}</p>
+                    <p>Preço unitário: R$ ${(item.price || 0).toFixed(2)}</p>
+                    <p>Subtotal: R$ ${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          
+          <div class="order-details-actions">
+            <button class="btn-outline btn-close-details">Fechar</button>
+          </div>
+        </div>
+      `;
+      
+      this.showCustomModal(`Pedido #${order.id || ''}`, modalContent);
+      
+      document.querySelector('.btn-close-details')?.addEventListener('click', () => {
+        document.getElementById('custom-modal').style.display = 'none';
+      });
+      
+    } catch (error) {
+      console.error('Error showing order details:', error);
+      this.showNotification(error.message || 'Erro ao mostrar detalhes do pedido', 'error');
+    } finally {
+      this._hideLoading();
+    }
+  }
+
+  _rateOrder(orderId) {
+    this.showCustomModal('Avaliar Pedido', `
+      <div class="rate-order-modal">
+        <h4>Avalie seu pedido #${orderId}</h4>
+        <div class="rating-stars">
+          ${[1, 2, 3, 4, 5].map(i => `
+            <i class="far fa-star" data-rating="${i}"></i>
+          `).join('')}
+        </div>
+        <textarea placeholder="Deixe seu comentário (opcional)"></textarea>
+        <div class="rate-actions">
+          <button class="btn-outline btn-cancel-rate">Cancelar</button>
+          <button class="btn-primary btn-submit-rate">Enviar Avaliação</button>
+        </div>
+      </div>
+    `);
+  
+    // Adicionar interação das estrelas
+    const stars = document.querySelectorAll('.rating-stars .fa-star');
+    stars.forEach(star => {
+      star.addEventListener('mouseover', (e) => {
+        const rating = parseInt(e.target.dataset.rating);
+        stars.forEach((s, i) => {
+          s.classList.toggle('fas', i < rating);
+          s.classList.toggle('far', i >= rating);
+        });
+      });
+      
+      star.addEventListener('click', (e) => {
+        const rating = parseInt(e.target.dataset.rating);
+        document.querySelector('.rating-stars').dataset.selected = rating;
+      });
+    });
+  
+    // Eventos dos botões
+    document.querySelector('.btn-cancel-rate')?.addEventListener('click', () => {
+      document.getElementById('custom-modal').style.display = 'none';
+    });
+  
+    document.querySelector('.btn-submit-rate')?.addEventListener('click', () => {
+      const rating = document.querySelector('.rating-stars')?.dataset.selected || 0;
+      const comment = document.querySelector('.rate-order-modal textarea').value;
+      
+      if (rating < 1) {
+        this.showNotification('Por favor, selecione uma avaliação', 'error');
+        return;
+      }
+      
+      // Simular envio da avaliação
+      this.showNotification('Avaliação enviada com sucesso!', 'success');
+      document.getElementById('custom-modal').style.display = 'none';
+    });
   }
 
   async loadAddresses() {

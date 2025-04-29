@@ -1315,3 +1315,129 @@ input:checked + .slider:before {
     font-size: 20px;
   }
 }
+
+.order-details-modal {
+  max-width: 800px;
+  width: 100%;
+}
+
+.order-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.order-info-section {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.info-item i {
+  margin-right: 10px;
+  color: #666;
+  width: 20px;
+  text-align: center;
+}
+
+.info-item.total {
+  font-weight: bold;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+}
+
+.order-items-section h4 {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.order-item {
+  display: flex;
+  padding: 15px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.item-image {
+  width: 100px;
+  height: 100px;
+  margin-right: 15px;
+  flex-shrink: 0;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.item-info h5 {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.item-info p {
+  margin: 3px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.order-details-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+/* Estilos para avaliação */
+.rating-stars {
+  margin: 15px 0;
+  font-size: 24px;
+  color: #ffc107;
+}
+
+.rating-stars .far {
+  cursor: pointer;
+}
+
+.rating-stars .fas {
+  cursor: pointer;
+}
+
+.rate-order-modal textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.rate-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

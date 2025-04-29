@@ -657,14 +657,31 @@ class ProfileModal {
     if (!user) return null;
     
     // Pega os dados do localStorage para manter o endereço
-    const localUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-    
+    const localUser = JSON.parse(localStorage.getItem('auth_user') || {});
+  
+    // Corrige a data de nascimento para evitar problemas de fuso horário
+    let birthday = user.birthday || user.dataNascimento || user.nascimento || localUser.birthday || '';
+    if (birthday) {
+      try {
+        // Adiciona meio-dia UTC para evitar problemas de fuso horário
+        const date = new Date(birthday.includes('T') ? birthday : `${birthday}T12:00:00Z`);
+        if (!isNaN(date.getTime())) {
+          // Formata como YYYY-MM-DD para armazenamento consistente
+          birthday = date.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        console.error('Error normalizing birth date:', e);
+        // Mantém o valor original se houver erro na conversão
+        birthday = user.birthday || user.dataNascimento || user.nascimento || localUser.birthday || '';
+      }
+    }
+  
     return {
       id: user.id || localUser.id || '',
       name: user.name || user.nome || localUser.name || 'Não informado',
       email: user.email || localUser.email || 'Não informado',
       phone: user.phone || user.telefone || user.celular || localUser.phone || '',
-      birthday: user.birthday || user.dataNascimento || user.nascimento || localUser.birthday || '',
+      birthday: birthday, // Usa a data corrigida
       cpf: user.cpf || localUser.cpf || '',
       avatar: user.avatar || localUser.avatar || null,
       address: {
@@ -680,7 +697,6 @@ class ProfileModal {
       benefits: user.benefits || localUser.benefits || []
     };
   }
-
   _renderUserData() {
     if (!this.currentUser) return;
 
@@ -722,7 +738,16 @@ class ProfileModal {
         this.elements.state.textContent = this.currentUser.address.state || '';
       }
     }
-
+    
+    //Endereço
+    if (this.elements.birthday) {
+      // Formata a data corrigindo o fuso horário
+      const date = new Date(this.currentUser.birthday + 'T12:00:00Z');
+      this.elements.birthday.textContent = isNaN(date.getTime()) ? 
+        'Não informado' : 
+        date.toLocaleDateString('pt-BR');
+    }
+  
     // Avatar
     if (this.currentUser.avatar && this.elements.avatarPreview) {
       this.elements.avatarPreview.innerHTML = '';
@@ -766,8 +791,14 @@ class ProfileModal {
   _formatDate(dateString) {
     if (!dateString) return 'Não informado';
     try {
+      // Corrige o problema do fuso horário criando a data no formato UTC
       const date = new Date(dateString);
-      return isNaN(date.getTime()) ? dateString : date.toLocaleDateString('pt-BR');
+      if (isNaN(date.getTime())) return dateString;
+      
+      // Ajusta para o fuso horário local
+      const adjustedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+      
+      return adjustedDate.toLocaleDateString('pt-BR');
     } catch {
       return dateString;
     }
@@ -782,15 +813,23 @@ class ProfileModal {
 
   _formatDateForInput(dateString) {
     if (!dateString) return '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+    
+    // Se já estiver no formato YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      // Cria a data no UTC para evitar problemas de fuso horário
+      const date = new Date(dateString + 'T12:00:00Z');
+      return date.toISOString().split('T')[0];
+    }
     
     try {
       if (dateString.includes('/')) {
         const [day, month, year] = dateString.split('/');
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        // Cria a data no UTC
+        const date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T12:00:00Z`);
+        return date.toISOString().split('T')[0];
       }
       
-      const date = new Date(dateString);
+      const date = new Date(dateString + 'T12:00:00Z');
       return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
     } catch {
       return '';

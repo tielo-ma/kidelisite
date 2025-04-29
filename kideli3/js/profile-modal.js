@@ -173,6 +173,15 @@ class ProfileModal {
         this.showComoGanharPontosModal();
       });
     }
+
+    // Configura botões de benefícios
+    document.querySelectorAll('.btn-beneficio').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const benefit = btn.dataset.benefit;
+        this.mostrarDetalhesBeneficio(benefit);
+      });
+    });
   }
 
   /**
@@ -182,14 +191,33 @@ class ProfileModal {
     try {
       this._showLoading();
       
+      // Verifica se o usuário tem pontos suficientes
+      const custo = this._getBenefitCost(benefit);
+      if (this.currentUser.points < custo) {
+        throw new Error(`Você precisa de ${custo} pontos para resgatar este benefício`);
+      }
+      
       // Simular chamada à API (substitua por chamada real)
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Atualizar pontos do usuário (exemplo)
-      if (this.currentUser.points) {
-        this.currentUser.points -= this._getBenefitCost(benefit);
-        sessionStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+      // Atualizar pontos do usuário
+      this.currentUser.points -= custo;
+      
+      // Adicionar benefício à lista de benefícios resgatados
+      if (!this.currentUser.benefits) {
+        this.currentUser.benefits = [];
       }
+      
+      this.currentUser.benefits.push({
+        id: benefit,
+        name: this._getBenefitName(benefit),
+        date: new Date().toISOString(),
+        used: false
+      });
+      
+      // Atualizar storage
+      sessionStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+      localStorage.setItem('auth_user', JSON.stringify(this.currentUser));
       
       this.showNotification(`Benefício "${this._getBenefitName(benefit)}" resgatado com sucesso!`, 'success');
       this.loadFidelityData();
@@ -202,6 +230,47 @@ class ProfileModal {
   }
 
   /**
+   * Mostra detalhes de um benefício específico
+   */
+  mostrarDetalhesBeneficio(benefit) {
+    const benefitInfo = this._getBenefitDetails(benefit);
+    const modalContent = `
+      <div class="benefit-details">
+        <div class="benefit-header ${benefit}">
+          <i class="${benefitInfo.icon}"></i>
+          <h3>${benefitInfo.name}</h3>
+        </div>
+        
+        <div class="benefit-body">
+          <p>${benefitInfo.description}</p>
+          
+          <div class="benefit-meta">
+            <div class="meta-item">
+              <i class="fas fa-coins"></i>
+              <span>${benefitInfo.cost} pontos</span>
+            </div>
+            <div class="meta-item">
+              <i class="fas fa-calendar-alt"></i>
+              <span>${benefitInfo.validity}</span>
+            </div>
+          </div>
+          
+          ${this.currentUser.points >= benefitInfo.cost ? 
+            `<button class="btn-gold btn-resgatar" data-benefit="${benefit}">
+              Resgatar Agora
+            </button>` : 
+            `<div class="points-required">
+              Você precisa de mais ${benefitInfo.cost - this.currentUser.points} pontos
+            </div>`
+          }
+        </div>
+      </div>
+    `;
+    
+    this.showCustomModal(benefitInfo.name, modalContent);
+  }
+
+  /**
    * Mostra o modal com dicas para ganhar mais pontos
    */
   showComoGanharPontosModal() {
@@ -209,6 +278,15 @@ class ProfileModal {
     const modalContent = `
       <div class="pontos-modal">
         <h3><i class="fas fa-coins"></i> Como Ganhar Mais Pontos</h3>
+        
+        <div class="pontos-tip">
+          <div class="pontos-icon"><i class="fas fa-shopping-bag"></i></div>
+          <div class="pontos-content">
+            <h4>Compras</h4>
+            <p>Ganhe 1 ponto para cada R$1 gasto em compras.</p>
+            <p class="highlight">Nível atual: ${this._getMultiplierForTier()}</p>
+          </div>
+        </div>
         
         <div class="pontos-tip">
           <div class="pontos-icon"><i class="fas fa-user-plus"></i></div>
@@ -243,6 +321,15 @@ class ProfileModal {
             <h4>Aniversário</h4>
             <p>Ganhe 200 pontos no seu aniversário!</p>
             <small>Disponível no mês do seu aniversário</small>
+          </div>
+        </div>
+        
+        <div class="pontos-tip">
+          <div class="pontos-icon"><i class="fas fa-star"></i></div>
+          <div class="pontos-content">
+            <h4>Avaliações</h4>
+            <p>Ganhe 10 pontos por cada avaliação de produto.</p>
+            <small>Máximo de 50 pontos por mês</small>
           </div>
         </div>
       </div>
@@ -282,10 +369,20 @@ class ProfileModal {
       modal.querySelector('.custom-modal-close').addEventListener('click', () => {
         modal.style.display = 'none';
       });
+      
+      // Fechar ao clicar fora
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
     }
     
     modal.querySelector('.custom-modal-body').innerHTML = content;
     modal.style.display = 'block';
+    
+    // Configurar eventos dos botões dentro do modal
+    this.setupFidelityActions();
   }
 
   /**
@@ -295,7 +392,9 @@ class ProfileModal {
     const costs = {
       'frete_gratis': 200,
       'desconto_10': 150,
-      'brinde': 100
+      'brinde': 100,
+      'cupom_15': 300,
+      'upgrade_tier': 500
     };
     return costs[benefit] || 0;
   }
@@ -304,9 +403,59 @@ class ProfileModal {
     const names = {
       'frete_gratis': 'Frete Grátis',
       'desconto_10': '10% de Desconto',
-      'brinde': 'Brinde Especial'
+      'brinde': 'Brinde Especial',
+      'cupom_15': 'Cupom de 15%',
+      'upgrade_tier': 'Upgrade de Tier'
     };
     return names[benefit] || benefit;
+  }
+
+  _getBenefitDetails(benefit) {
+    const benefits = {
+      'frete_gratis': {
+        name: 'Frete Grátis',
+        description: 'Frete grátis em qualquer compra, independente do valor. Válido por 30 dias após o resgate.',
+        cost: 200,
+        validity: 'Válido por 30 dias',
+        icon: 'fas fa-truck'
+      },
+      'desconto_10': {
+        name: '10% de Desconto',
+        description: 'Cupom de desconto de 10% em qualquer compra. Pode ser usado uma única vez.',
+        cost: 150,
+        validity: 'Válido por 15 dias',
+        icon: 'fas fa-percentage'
+      },
+      'brinde': {
+        name: 'Brinde Especial',
+        description: 'Brinde exclusivo em seu próximo pedido. Escolha entre várias opções na finalização da compra.',
+        cost: 100,
+        validity: 'Válido por 60 dias',
+        icon: 'fas fa-gift'
+      },
+      'cupom_15': {
+        name: 'Cupom de 15%',
+        description: 'Cupom de desconto de 15% em compras acima de R$ 200,00. Apenas para nível Ouro ou superior.',
+        cost: 300,
+        validity: 'Válido por 7 dias',
+        icon: 'fas fa-tag'
+      },
+      'upgrade_tier': {
+        name: 'Upgrade de Tier',
+        description: 'Upgrade temporário para o próximo nível por 30 dias. Desbloqueie benefícios exclusivos!',
+        cost: 500,
+        validity: 'Válido por 30 dias',
+        icon: 'fas fa-level-up-alt'
+      }
+    };
+    
+    return benefits[benefit] || {
+      name: this._getBenefitName(benefit),
+      description: 'Benefício do programa de fidelidade',
+      cost: this._getBenefitCost(benefit),
+      validity: 'Válido por 30 dias',
+      icon: 'fas fa-star'
+    };
   }
 
   _handleAvatarUpload(event) {
@@ -507,24 +656,28 @@ class ProfileModal {
   _normalizeUserData(user) {
     if (!user) return null;
     
+    // Pega os dados do localStorage para manter o endereço
+    const localUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+    
     return {
-      id: user.id || '',
-      name: user.name || user.nome || 'Não informado',
-      email: user.email || 'Não informado',
-      phone: user.phone || user.telefone || user.celular || '',
-      birthday: user.birthday || user.dataNascimento || user.nascimento || '',
-      cpf: user.cpf || '',
-      avatar: user.avatar || null,
+      id: user.id || localUser.id || '',
+      name: user.name || user.nome || localUser.name || 'Não informado',
+      email: user.email || localUser.email || 'Não informado',
+      phone: user.phone || user.telefone || user.celular || localUser.phone || '',
+      birthday: user.birthday || user.dataNascimento || user.nascimento || localUser.birthday || '',
+      cpf: user.cpf || localUser.cpf || '',
+      avatar: user.avatar || localUser.avatar || null,
       address: {
-        street: user.address?.street || user.endereco?.rua || user.logradouro || '',
-        number: user.address?.number || user.endereco?.numero || '',
-        complement: user.address?.complement || user.endereco?.complemento || '',
-        neighborhood: user.address?.neighborhood || user.endereco?.bairro || user.bairro || '',
-        city: user.address?.city || user.endereco?.cidade || user.cidade || '',
-        state: user.address?.state || user.endereco?.uf || user.uf || ''
+        street: user.address?.street || user.endereco?.rua || user.logradouro || localUser.address?.street || '',
+        number: user.address?.number || user.endereco?.numero || localUser.address?.number || '',
+        complement: user.address?.complement || user.endereco?.complemento || localUser.address?.complement || '',
+        neighborhood: user.address?.neighborhood || user.endereco?.bairro || user.bairro || localUser.address?.neighborhood || '',
+        city: user.address?.city || user.endereco?.cidade || user.cidade || localUser.address?.city || '',
+        state: user.address?.state || user.endereco?.uf || user.uf || localUser.address?.state || ''
       },
-      tier: user.tier || 'bronze',
-      points: user.points || 0
+      tier: user.tier || localUser.tier || 'bronze',
+      points: user.points || localUser.points || 0,
+      benefits: user.benefits || localUser.benefits || []
     };
   }
 
@@ -882,6 +1035,7 @@ class ProfileModal {
         await window.Auth.updateUser(this.currentUser);
       } else {
         sessionStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+        localStorage.setItem('auth_user', JSON.stringify(this.currentUser));
       }
       
       // Exit edit mode
@@ -912,7 +1066,7 @@ class ProfileModal {
     }
     
     try {
-      const userData = sessionStorage.getItem('auth_user');
+      const userData = sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
       return userData ? JSON.parse(userData) : null;
     } catch (error) {
       console.error('Error parsing userData:', error);
@@ -925,7 +1079,14 @@ class ProfileModal {
       const user = await this.fetchUserData();
       if (!user) throw new Error('Usuário não encontrado');
       
-      this.currentUser = this._normalizeUserData(user);
+      // Mescla com os dados locais existentes
+      const localUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+      this.currentUser = this._normalizeUserData({ ...localUser, ...user });
+      
+      // Atualiza o localStorage com os dados mesclados
+      localStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+      sessionStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+      
       this._renderUserData();
     } catch (error) {
       console.error('[ProfileModal] Error loading data:', error);
@@ -936,11 +1097,16 @@ class ProfileModal {
   async fetchUserData() {
     try {
       if (window.Auth?.getUser) {
-        return await window.Auth.getUser();
+        const user = await window.Auth.getUser();
+        // Mescla com os dados salvos localmente
+        const localUser = JSON.parse(localStorage.getItem('auth_user') || {});
+        return { ...user, ...localUser };
       }
       
-      const userData = sessionStorage.getItem('auth_user');
+      // Se não estiver usando Auth.getUser, pega apenas do localStorage
+      const userData = localStorage.getItem('auth_user');
       if (!userData) throw new Error('Usuário não autenticado');
+      
       return JSON.parse(userData);
     } catch (error) {
       console.error('[ProfileModal] Error fetching user data:', error);
@@ -1029,32 +1195,230 @@ class ProfileModal {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Sample data
+      // Get user address data
+      const address = this.currentUser.address || {};
+      
+      // Create address card HTML
       this.elements.addressesContent.innerHTML = `
         <div class="addresses-grid">
-          <div class="address-card primary">
+          <div class="address-card ${!address.street ? 'empty' : 'primary'}">
             <div class="address-header">
-              <h3>Endereço Principal</h3>
+              <h3>${address.street ? 'Endereço Principal' : 'Nenhum endereço cadastrado'}</h3>
               <div class="address-actions">
-                <button class="btn-icon"><i class="fas fa-edit"></i></button>
-                <button class="btn-icon"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon btn-edit-address"><i class="fas fa-edit"></i></button>
+                ${address.street ? '<button class="btn-icon btn-remove-address"><i class="fas fa-trash"></i></button>' : ''}
               </div>
             </div>
-            <div class="address-body">
-              <p>${this.currentUser.address?.street || ''}, ${this.currentUser.address?.number || ''}</p>
-              ${this.currentUser.address?.complement ? `<p>${this.currentUser.address.complement}</p>` : ''}
-              <p>${this.currentUser.address?.neighborhood || ''}</p>
-              <p>${this.currentUser.address?.city || ''} - ${this.currentUser.address?.state || ''}</p>
-            </div>
+            ${address.street ? `
+              <div class="address-body">
+                <p><strong>Logradouro:</strong> ${address.street}, ${address.number || 'S/N'}</p>
+                ${address.complement ? `<p><strong>Complemento:</strong> ${address.complement}</p>` : ''}
+                <p><strong>Bairro:</strong> ${address.neighborhood || 'Não informado'}</p>
+                <p><strong>Cidade/UF:</strong> ${address.city || 'Não informado'} - ${address.state || 'Não informado'}</p>
+              </div>
+            ` : `
+              <div class="address-empty">
+                <i class="fas fa-map-marker-alt"></i>
+                <p>Você ainda não cadastrou um endereço</p>
+                <button class="btn-primary btn-add-address">
+                  <i class="fas fa-plus"></i> Adicionar Endereço
+                </button>
+              </div>
+            `}
           </div>
         </div>
       `;
+      
+      // Setup event listeners for address actions
+      this._setupAddressEvents();
+      
     } catch (error) {
       console.error('Error loading addresses:', error);
       this._showError('Erro ao carregar endereços');
     } finally {
       this._hideLoading();
     }
+  }
+
+  _setupAddressEvents() {
+    // Edit address button
+    const editBtn = this.elements.addressesContent.querySelector('.btn-edit-address');
+    if (editBtn) {
+      editBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this._editAddress();
+      });
+    }
+    
+    // Remove address button
+    const removeBtn = this.elements.addressesContent.querySelector('.btn-remove-address');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this._removeAddress();
+      });
+    }
+    
+    // Add address button
+    const addBtn = this.elements.addressesContent.querySelector('.btn-add-address');
+    if (addBtn) {
+      addBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this._addAddress();
+      });
+    }
+  }
+
+  _editAddress() {
+    const address = this.currentUser.address || {};
+    
+    const modalContent = `
+      <div class="address-form">
+        <div class="form-group">
+          <label>Logradouro</label>
+          <input type="text" id="edit-street" value="${address.street || ''}" placeholder="Rua, Avenida, etc.">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Número</label>
+            <input type="text" id="edit-number" value="${address.number || ''}" placeholder="Número">
+          </div>
+          <div class="form-group">
+            <label>Complemento</label>
+            <input type="text" id="edit-complement" value="${address.complement || ''}" placeholder="Apto, Bloco, etc.">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Bairro</label>
+          <input type="text" id="edit-neighborhood" value="${address.neighborhood || ''}" placeholder="Bairro">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cidade</label>
+            <input type="text" id="edit-city" value="${address.city || ''}" placeholder="Cidade">
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <select id="edit-state">
+              <option value="">Selecione</option>
+              ${this._getStatesOptions(address.state)}
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-outline btn-cancel-edit">Cancelar</button>
+          <button class="btn-primary btn-save-address">Salvar Endereço</button>
+        </div>
+      </div>
+    `;
+    
+    this.showCustomModal('Editar Endereço', modalContent);
+    
+    // Setup save button
+    document.querySelector('.btn-save-address')?.addEventListener('click', () => this._saveAddress());
+    document.querySelector('.btn-cancel-edit')?.addEventListener('click', () => document.getElementById('custom-modal').style.display = 'none');
+  }
+
+  _addAddress() {
+    this._editAddress(); // Reuse the edit form for new addresses
+  }
+
+  async _saveAddress() {
+    try {
+      this._showLoading();
+      
+      // Get form values
+      const street = document.getElementById('edit-street').value.trim();
+      const number = document.getElementById('edit-number').value.trim();
+      const complement = document.getElementById('edit-complement').value.trim();
+      const neighborhood = document.getElementById('edit-neighborhood').value.trim();
+      const city = document.getElementById('edit-city').value.trim();
+      const state = document.getElementById('edit-state').value;
+      
+      // Validate required fields
+      if (!street) throw new Error('Logradouro é obrigatório');
+      if (!neighborhood) throw new Error('Bairro é obrigatório');
+      if (!city) throw new Error('Cidade é obrigatória');
+      if (!state) throw new Error('Estado é obrigatório');
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Atualiza o usuário atual
+      this.currentUser.address = {
+        street,
+        number,
+        complement,
+        neighborhood,
+        city,
+        state
+      };
+      
+      // Atualiza o localStorage completamente
+      const userData = {
+        ...this.currentUser,
+        address: this.currentUser.address
+      };
+      
+      localStorage.setItem('auth_user', JSON.stringify(userData));
+      sessionStorage.setItem('auth_user', JSON.stringify(userData));
+      
+      // Se estiver usando um sistema de autenticação externo, atualize lá também
+      if (window.Auth?.updateUser) {
+        await window.Auth.updateUser(userData);
+      }
+      
+      // Close modal and refresh
+      document.getElementById('custom-modal').style.display = 'none';
+      this.loadAddresses();
+      
+      this.showNotification('Endereço salvo com sucesso!', 'success');
+    } catch (error) {
+      console.error('Error saving address:', error);
+      this.showNotification(error.message || 'Erro ao salvar endereço', 'error');
+    } finally {
+      this._hideLoading();
+    }
+  }
+
+  async _removeAddress() {
+    if (!window.confirm('Tem certeza que deseja remover este endereço?')) return;
+    
+    try {
+      this._showLoading();
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Remove address
+      this.currentUser.address = {};
+      
+      // Update both storages
+      sessionStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+      localStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+      
+      // Refresh
+      this.loadAddresses();
+      
+      this.showNotification('Endereço removido com sucesso', 'info');
+    } catch (error) {
+      console.error('Error removing address:', error);
+      this.showNotification('Erro ao remover endereço', 'error');
+    } finally {
+      this._hideLoading();
+    }
+  }
+
+  _getStatesOptions(selectedState = '') {
+    const states = [
+      'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 
+      'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 
+      'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+    ];
+    
+    return states.map(state => 
+      `<option value="${state}" ${state === selectedState ? 'selected' : ''}>${state}</option>`
+    ).join('');
   }
 
   async loadFidelityData() {
@@ -1101,11 +1465,14 @@ class ProfileModal {
             </div>
             
             <div class="fidelity-actions">
-              <button class="btn-gold btn-resgatar" data-benefit="frete_gratis">
-                <i class="fas fa-truck"></i> Resgatar Frete Grátis
+              <button class="btn-gold btn-beneficio" data-benefit="frete_gratis">
+                <i class="fas fa-truck"></i> Frete Grátis
               </button>
-              <button class="btn-gold btn-resgatar" data-benefit="desconto_10">
-                <i class="fas fa-percentage"></i> Resgatar 10% de Desconto
+              <button class="btn-gold btn-beneficio" data-benefit="desconto_10">
+                <i class="fas fa-percentage"></i> 10% de Desconto
+              </button>
+              <button class="btn-gold btn-beneficio" data-benefit="brinde">
+                <i class="fas fa-gift"></i> Brinde Especial
               </button>
               <button id="btn-como-ganhar-pontos" class="btn-outline">
                 <i class="fas fa-info-circle"></i> Como Ganhar Mais Pontos
@@ -1119,6 +1486,15 @@ class ProfileModal {
               ${this._getUpcomingBenefits()}
             </div>
           </div>
+
+          ${this.currentUser.benefits?.length > 0 ? `
+            <div class="benefits-section">
+              <h3><i class="fas fa-check-circle"></i> Seus Benefícios Resgatados</h3>
+              <div class="benefits-grid">
+                ${this._getRedeemedBenefits()}
+              </div>
+            </div>
+          ` : ''}
         </section>
       `;
 
@@ -1130,6 +1506,28 @@ class ProfileModal {
     } finally {
       this._hideLoading();
     }
+  }
+
+  _getRedeemedBenefits() {
+    if (!this.currentUser.benefits || this.currentUser.benefits.length === 0) {
+      return '<p class="no-benefits">Você ainda não resgatou nenhum benefício</p>';
+    }
+    
+    return this.currentUser.benefits.map(benefit => {
+      const details = this._getBenefitDetails(benefit.id);
+      return `
+        <div class="benefit-card ${benefit.used ? 'used' : 'active'}">
+          <div class="benefit-icon">
+            <i class="${details.icon}"></i>
+          </div>
+          <h4>${benefit.name}</h4>
+          <p>Resgatado em: ${this._formatDate(benefit.date)}</p>
+          <span class="benefit-status">
+            ${benefit.used ? 'Utilizado' : 'Disponível'}
+          </span>
+        </div>
+      `;
+    }).join('');
   }
 
   _calculateProgress() {
@@ -1219,6 +1617,15 @@ class ProfileModal {
           </div>
           <span class="benefit-status">Disponível em ${1000 - (this.currentUser.points || 0)} pontos</span>
         </div>
+        
+        <div class="benefit-card upcoming">
+          <div class="benefit-icon">
+            <i class="fas fa-truck"></i>
+          </div>
+          <h4>Frete Grátis</h4>
+          <p>Frete grátis em compras acima de R$ 100</p>
+          <span class="benefit-status">Disponível em 500 pontos</span>
+        </div>
       `;
     } else if (tier === 'silver') {
       return `
@@ -1233,6 +1640,15 @@ class ProfileModal {
           </div>
           <span class="benefit-status">Disponível em ${2500 - (this.currentUser.points || 0)} pontos</span>
         </div>
+        
+        <div class="benefit-card upcoming">
+          <div class="benefit-icon">
+            <i class="fas fa-gift"></i>
+          </div>
+          <h4>Brinde Exclusivo</h4>
+          <p>Brinde exclusivo a cada 3 compras</p>
+          <span class="benefit-status">Disponível em 2000 pontos</span>
+        </div>
       `;
     } else if (tier === 'gold') {
       return `
@@ -1246,6 +1662,15 @@ class ProfileModal {
             <div class="progress-fill-benefit" style="width: ${this._calculateProgress()}%"></div>
           </div>
           <span class="benefit-status">Disponível em ${4500 - (this.currentUser.points || 0)} pontos</span>
+        </div>
+        
+        <div class="benefit-card upcoming">
+          <div class="benefit-icon">
+            <i class="fas fa-star"></i>
+          </div>
+          <h4>Atendimento VIP</h4>
+          <p>Atendimento personalizado e prioridade</p>
+          <span class="benefit-status">Disponível em 4000 pontos</span>
         </div>
       `;
     }
@@ -1314,10 +1739,29 @@ class ProfileModal {
 
   performLogout() {
     try {
+      // Remove apenas os itens de autenticação
       sessionStorage.removeItem('auth_token');
       sessionStorage.removeItem('auth_user');
+      localStorage.removeItem('auth_token');
+      
+      // Mantém os dados do usuário no localStorage exceto informações sensíveis
+      const userData = JSON.parse(localStorage.getItem('auth_user') || '{}');
+      const { id, name, email, address, tier, points, benefits } = userData;
+      
+      localStorage.setItem('auth_user', JSON.stringify({
+        id,
+        name,
+        email,
+        address,
+        tier,
+        points,
+        benefits
+      }));
+      
+      // Remove o carrinho
       localStorage.removeItem('kideliCart');
       
+      // Atualiza os botões de login
       document.querySelectorAll('.auth-button').forEach(btn => {
         btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
         btn.classList.remove('logged-in');

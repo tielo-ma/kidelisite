@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KiDeli - Sobre Nós</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/sobre.css">
+    <link rel="icon" href="data:,">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <img src="./assets/image/kilogo.png" alt="KiDeli">
+            </div>
+            
+            <nav class="menu">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="tortas.html">Cardápio</a></li>
+                    <li><a href="sobre.html">Sobre Nós</a></li>
+                    <li><a href="contato.html">Contato</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-actions">
+                <button class="account-btn" id="authButton">
+                    <i class="fas fa-user"></i>
+                    <span class="auth-label">Minha Conta</span>
+                </button>
+                
+                <div class="cart-wrapper">
+                    <a href="#" class="cart-btn" id="cartButton">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count">0</span>
+                    </a>
+                    <div class="cart-dropdown" id="cartDropdown">
+                        <div class="cart-items"></div>
+                        <div class="cart-total">
+                            Total: <span>R$ 0,00</span>
+                        </div>
+                        <a href="#" class="checkout-btn">Finalizar Compra</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="about-hero" style="background-image: url('./assets/image/red.jpeg')">
+        <div class="hero-overlay"></div>
+        <div class="container">
+            <div class="hero-content">
+                <h1>A Arte da Confeitaria <span>KiDeli</span></h1>
+                <p>Sabores extraordinários feitos com paixão e dedicação</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Nossa História -->
+    <section class="our-story">
+        <div class="container">
+            <div class="section-header">
+                <h2>Nossa <span>Jornada</span></h2>
+                <div class="gold-line"></div>
+            </div>
+            
+            <div class="story-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-year">2020</div>
+                    <div class="timeline-content">
+                        <div class="timeline-image">
+                            <img src="./assets/image/historia1.jpg" alt="Início da KiDeli" loading="lazy">
+                        </div>
+                        <div class="timeline-text">
+                            <h3>Os Primeiros Sabores</h3>
+                            <p>Tudo começou em uma pequena cozinha em Natal, onde cada receita era preparada com cuidado artesanal. Os primeiros clientes, amigos e familiares, se encantaram com os sabores e texturas únicas.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-year">2022</div>
+                    <div class="timeline-content">
+                        <div class="timeline-image">
+                            <img src="./assets/image/historia2.jpg" alt="Crescimento da KiDeli" loading="lazy">
+                        </div>
+                        <div class="timeline-text">
+                            <h3>Reconhecimento pela Qualidade</h3>
+                            <p>Com a crescente demanda, a KiDeli investiu em equipamentos profissionais e processos aprimorados, mantendo sempre o caráter artesanal que é nossa marca registrada.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-year">Hoje</div>
+                    <div class="timeline-content">
+                        <div class="timeline-image">
+                            <img src="./assets/image/historia3.jpg" alt="KiDeli atual" loading="lazy">
+                        </div>
+                        <div class="timeline-text">
+                            <h3>Expansão dos Sonhos</h3>
+                            <p>Hoje, continuamos crescendo organicamente, com planos de ampliação que nos permitirão levar nossos sabores para mais pessoas, sem nunca abrir mão da qualidade e cuidado que nos trouxeram até aqui.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Nossa Filosofia -->
+    <section class="our-philosophy">
+        <div class="philosophy-overlay"></div>
+        <div class="container">
+            <div class="philosophy-content">
+                <div class="section-header">
+                    <h2>Nossa <span>Essência</span></h2>
+                    <div class="gold-line"></div>
+                </div>
+                
+                <div class="philosophy-grid">
+                    <div class="philosophy-card">
+                        <div class="philosophy-icon">
+                            <i class="fas fa-seedling"></i>
+                        </div>
+                        <h3>Ingredientes Excepcionais</h3>
+                        <p>Selecionamos cuidadosamente cada ingrediente, priorizando produtores locais de qualidade e importando apenas o essencial para garantir a excelência.</p>
+                    </div>
+                    
+                    <div class="philosophy-card">
+                        <div class="philosophy-icon">
+                            <i class="fas fa-hand-holding-heart"></i>
+                        </div>
+                        <h3>Técnica e Paixão</h3>
+                        <p>Cada produto é feito à mão, combinando técnicas tradicionais com toques de criatividade, em pequenos lotes que garantem frescor e qualidade.</p>
+                    </div>
+                    
+                    <div class="philosophy-card">
+                        <div class="philosophy-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h3>Atendimento Personalizado</h3>
+                        <p>Mantemos um relacionamento próximo com cada cliente, entendendo suas preferências e criando experiências únicas através de nossos sabores.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Nosso Espaço -->
+    <section class="gallery-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Nosso <span>Cantinho</span></h2>
+                <div class="gold-line"></div>
+                <p>Onde a magia dos sabores acontece</p>
+            </div>
+            
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="./assets/image/atelie1.jpg" alt="Cozinha da KiDeli" loading="lazy">
+                    <div class="gallery-overlay">
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="./assets/image/atelie2.jpg" alt="Preparo artesanal" loading="lazy">
+                    <div class="gallery-overlay">
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="./assets/image/atelie3.jpg" alt="Produtos KiDeli" loading="lazy">
+                    <div class="gallery-overlay">
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="./assets/image/atelie4.jpg" alt="Ingredientes selecionados" loading="lazy">
+                    <div class="gallery-overlay">
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Processo de Criação -->
+    <section class="creation-process">
+        <div class="container">
+            <div class="section-header">
+                <h2>Nosso <span>Processo</span></h2>
+                <div class="gold-line"></div>
+            </div>
+            
+            <div class="process-steps">
+                <div class="process-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Inspiração</h3>
+                        <p>Cada criação começa com a busca por sabores e combinações que despertem emoções e memórias afetivas.</p>
+                    </div>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Desenvolvimento</h3>
+                        <p>Testamos diversas variações até alcançar a perfeição de sabor, textura e apresentação.</p>
+                    </div>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Produção</h3>
+                        <p>Feito em pequenos lotes, com atenção meticulosa a cada detalhe do preparo.</p>
+                    </div>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Entrega</h3>
+                        <p>Cuidadosamente embalado e entregue com todo carinho, mantendo a qualidade até chegar a você.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Equipe -->
+    <section class="our-team">
+        <div class="team-overlay"></div>
+        <div class="container">
+            <div class="section-header">
+                <h2>Quem <span>Faz</span></h2>
+                <div class="gold-line"></div>
+                <p>Os talentos por trás de cada sabor</p>
+            </div>
+            
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-photo">
+                        <img src="./assets/image/karina.jpg" alt="Karina Oliveira" loading="lazy">
+                    </div>
+                    <div class="member-info">
+                        <h3>Karina Oliveira</h3>
+                        <p class="position">Fundadora e Confeiteira</p>
+                        <p class="bio">Autodidata apaixonada por confeitaria, transformou seu talento natural em uma profissão, sendo responsável pelas receitas exclusivas da KiDeli.</p>
+                    </div>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-photo">
+                        <img src="./assets/image/rafael.jpg" alt="Rafael Costa" loading="lazy">
+                    </div>
+                    <div class="member-info">
+                        <h3>Rafael Costa</h3>
+                        <p class="position">Auxiliar de Confeitaria</p>
+                        <p class="bio">Com formação em gastronomia, traz técnica e precisão para o preparo de cada produto, garantindo a consistência que nossos clientes amam.</p>
+                    </div>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-photo">
+                        <img src="./assets/image/amanda.jpg" alt="Amanda Santos" loading="lazy">
+                    </div>
+                    <div class="member-info">
+                        <h3>Amanda Santos</h3>
+                        <p class="position">Atendimento e Vendas</p>
+                        <p class="bio">O sorriso e cuidado que tornam cada pedido uma experiência especial, entendendo as necessidades de cada cliente.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <img src="./assets/image/kilogo.png" alt="KiDeli" class="footer-logo">
+                    <p>Arte e sabor em cada fatia.</p>
+                    <div class="payment-methods">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-cc-paypal"></i>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h3>Cardápio</h3>
+                    <ul>
+                        <li><a href="#">Bolos</a></li>
+                        <li><a href="tortas.html">Tortas Doces</a></li>
+                        <li><a href="#">Mousses</a></li>
+                        <li><a href="#">Docinhos</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Links Úteis</h3>
+                    <ul>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
+                        <li><a href="#">Termos de Serviço</a></li>
+                        <li><a href="#">Política de Privacidade</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Contato</h3>
+                    <p><i class="fas fa-phone"></i> (84) 99999-9999</p>
+                    <p><i class="fas fa-envelope"></i> contato@kideli.com.br</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KiDeli. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Botão do WhatsApp -->
+    <a href="https://wa.me/5584999999999" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Galeria de imagens interativa
+        document.addEventListener('DOMContentLoaded', function() {
+            const galleryItems = document.querySelectorAll('.gallery-item');
+            
+            galleryItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const imgSrc = this.querySelector('img').src;
+                    const overlay = document.createElement('div');
+                    overlay.className = 'image-modal-overlay';
+                    overlay.innerHTML = `
+                        <div class="image-modal">
+                            <span class="close-modal">&times;</span>
+                            <img src="${imgSrc}" alt="Imagem ampliada">
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(overlay);
+                    document.body.style.overflow = 'hidden';
+                    
+                    overlay.querySelector('.close-modal').addEventListener('click', function() {
+                        document.body.removeChild(overlay);
+                        document.body.style.overflow = '';
+                    });
+                    
+                    overlay.addEventListener('click', function(e) {
+                        if (e.target === overlay) {
+                            document.body.removeChild(overlay);
+                            document.body.style.overflow = '';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -3,31 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KiDeli Arte & Sabor - Cardápio Exclusivo</title>
+    <title>KiDeli - Cardápio de Tortas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/tortas.css">
+    <link rel="icon" href="data:,">
 </head>
-<body class="premium-page">
-    <!-- Cabeçalho Premium -->
-    <header class="premium-header">
-        <div class="premium-header-content">
-            <a href="index.html" class="premium-logo">
-                <img src="./assets/image/kilogo.png" alt="KiDeli Premium">
-                <span class="premium-slogan">Confeitaria Artesanal</span>
-            </a>
+<body>
+    <!-- Cabeçalho Padronizado -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <img src="./assets/image/kilogo.png" alt="KiDeli">
+            </div>
             
-        
-        <div class="premium-nav">
-            <nav>
+            <nav class="menu">
                 <ul>
                     <li><a href="index.html">Home</a></li>
-                    <li class="active"><a href="tortas.html">Tortas Artesanais</a></li>
-                    <!-- <li><a href="#">Bolos</a></li> -->
-                    <!-- <li><a href="#">Mousse</a></li> -->
-                    <li><a href="#">Encomendas</a></li>
+                    <li><a href="tortas.html">Cardápio</a></li>
+                    <li><a href="sobre.html">Sobre Nós</a></li>
+                    <li><a href="contato.html">Contato</a></li>
                 </ul>
             </nav>
+            
+            <div class="header-actions">
+                <button class="account-btn" id="authButton">
+                    <i class="fas fa-user"></i>
+                    <span class="auth-label">Minha Conta</span>
+                </button>
+                
+                <div class="cart-wrapper">
+                    <a href="#" class="cart-btn" id="cartButton">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count">0</span>
+                    </a>
+                    <div class="cart-dropdown" id="cartDropdown">
+                        <div class="cart-items"></div>
+                        <div class="cart-total">
+                            Total: <span>R$ 0,00</span>
+                        </div>
+                        <a href="#" class="checkout-btn">Finalizar Compra</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -48,12 +67,12 @@
     <section class="premium-collection">
         <div class="premium-container">
             <div class="premium-collection-header">
-                <h2 class="premium-section-title">Nossas Tortas </h2>
+                <h2 class="premium-section-title">Nossas Tortas</h2>
                 <p class="premium-section-subtitle">Edição Limitada - Sob encomenda com 48h de antecedência</p>
             </div>
             
             <div class="premium-tortas-grid">
-                                <!-- Torta 1 - Pistache Black -->
+                <!-- Torta 1 - Pistache Black -->
                 <article class="premium-torta-card clickable-torta" 
                 data-id="pistache-black"
                 data-product='{
@@ -427,65 +446,62 @@
         </div>
     </div>
 
-    <!-- Footer Premium Atualizado -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <img src="./assets/image/kilogo.png" alt="KiDeli" class="footer-logo">
-                <p>Confeitaria Artesanal desde 2024</p>
-                <div class="payment-methods">
-                    <i class="fab fa-cc-visa"></i>
-                    <i class="fab fa-cc-mastercard"></i>
-                    <i class="fab fa-cc-paypal"></i>
+    <!-- Rodapé -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <img src="./assets/image/kilogo.png" alt="KiDeli" class="footer-logo">
+                    <p>Confeitaria Artesanal desde 2024</p>
+                    <div class="payment-methods">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-cc-paypal"></i>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h3>Cardápio</h3>
+                    <ul>
+                        <li><a href="tortas.html">Tortas Premium</a></li>
+                        <li><a href="#">Bolos</a></li>
+                        <li><a href="#">Mousse</a></li>
+                        <li><a href="#">Edição Limitada</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Links Úteis</h3>
+                    <ul>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
+                        <li><a href="#">Termos de Serviço</a></li>
+                        <li><a href="#">Política de Privacidade</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Contato</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Av. Deodoro da Fonseca, 240 - Natal/RN</p>
+                    <p><i class="fas fa-phone"></i> +55 84 99999-9999</p>
+                    <p><i class="fas fa-envelope"></i> contato@kideli.com.br</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
                 </div>
             </div>
-            <div class="footer-col">
-                <h3>Cardápio</h3>
-                <ul>
-                    <li><a href="tortas.html">Tortas Premium</a></li>
-                    <li><a href="#">Bolos</a></li>
-                    <li><a href="#">Mousse</a></li>
-                    <li><a href="#">Edição Limitada</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h3>Links Úteis</h3>
-                <ul>
-                    <li><a href="#">Sobre Nós</a></li>
-                    <li><a href="#">Termos de Serviço</a></li>
-                    <li><a href="#">Política de Privacidade</a></li>
-                    <li><a href="#">FAQ</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h3>Contato</h3>
-                <p><i class="fas fa-map-marker-alt"></i> Av. Deodoro da Fonseca, 240 - Natal/RN</p>
-                <p><i class="fas fa-phone"></i> +55 11 99999-9999</p>
-                <p><i class="fas fa-envelope"></i> premium@kideli.com</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-whatsapp"></i></a>
-                </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KiDeli. Todos os direitos reservados.</p>
             </div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 KiDeli Premium. Todos os direitos reservados.</p>
-        </div>
-    </div>
-    
-</footer>
+    </footer>
 
     <!-- Botão do WhatsApp -->
-    <a href="https://wa.me/5511999999999" class="premium-whatsapp">
+    <a href="https://wa.me/5584999999999" class="whatsapp-float">
         <i class="fab fa-whatsapp"></i>
     </a>
 
     <!-- Scripts -->
-    <!-- <script src="js/main.js"></script> -->
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
     <script src="js/tortas.js"></script>
-
-    
-        
 </body>
 </html>

@@ -297,6 +297,30 @@
           </button>
         </div>
       </div>
+
+      <div id="passwordRecoveryModal" class="modal" style="display:none;">
+        <div class="modal-content">
+          <span class="close-modal">&times;</span>
+          
+          <div id="recovery-success" class="alert success" style="display:none;">
+            <i class="fas fa-check-circle"></i>
+            <p>Enviamos um link para seu e-mail!</p>
+          </div>
+      
+          <form id="recovery-form" class="auth-form">
+            <h3><i class="fas fa-key"></i> Recuperar Senha</h3>
+            
+            <div class="form-group">
+              <label>E-mail cadastrado</label>
+              <input type="email" required placeholder="seu@email.com">
+            </div>
+            
+            <button type="submit" class="btn-primary">
+              <i class="fas fa-paper-plane"></i> Enviar Link
+            </button>
+          </form>
+        </div>
+      </div>
   
       <!-- Loading state -->
       <div id="profile-loader" class="profile-loader" style="display: none;">

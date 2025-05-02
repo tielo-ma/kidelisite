@@ -64,6 +64,17 @@ class ProfileModal {
   _initialize() {
     this._loadElements();
     this._setupEventListeners();
+    this.passwordRecovery = new PasswordRecovery('passwordRecoveryModal');
+    
+    // Adicione um link/trigger em algum lugar apropriado
+    this.elements.loginMessage?.querySelector('.auth-links')?.insertAdjacentHTML('beforeend', `
+      <a href="#" id="forgot-password-link">Esqueceu sua senha?</a>
+    `);
+    
+    document.getElementById('forgot-password-link')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.passwordRecovery.open();
+    });
   }
 
   _loadElements() {
@@ -2002,6 +2013,56 @@ class ProfileModal {
       console.error('Authentication system not available');
       this._showError('Sistema de login indisponível');
     }
+  }
+}
+
+// No profile-modal.js, adicione como uma classe interna
+class PasswordRecovery {
+  constructor(modalId) {
+    this.modal = document.getElementById(modalId);
+    this.form = this.modal?.querySelector('#recovery-form');
+    this.successMessage = this.modal?.querySelector('#recovery-success');
+    
+    if (this.form) {
+      this.form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.handleSubmit();
+      });
+    }
+    
+    this.modal?.querySelector('.close-modal').addEventListener('click', () => {
+      this.close();
+    });
+  }
+
+  async handleSubmit() {
+    const email = this.form.querySelector('input').value;
+    const button = this.form.querySelector('button');
+    
+    try {
+      button.disabled = true;
+      await ApiService.requestPasswordReset(email);
+      
+      this.form.style.display = 'none';
+      this.successMessage.style.display = 'block';
+      
+      setTimeout(() => this.close(), 3000);
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  open() {
+    this.modal.style.display = 'block';
+    this.form.style.display = 'block';
+    this.successMessage.style.display = 'none';
+    this.form.querySelector('input').focus();
+  }
+
+  close() {
+    this.modal.style.display = 'none';
   }
 }
 

@@ -1844,3 +1844,50 @@ button {
     z-index: 1001;
 }
 
+/* Estilo para o link "Esqueci minha senha" */
+.forgot-password {
+    text-align: center;
+    margin-top: 15px;
+    padding: 10px 0;
+}
+
+.forgot-password a {
+    color: #8B4513;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s;
+}
+
+.forgot-password a:hover {
+    color: #A0522D;
+    text-decoration: underline;
+}
+
+/* Estilo para as notificações toast */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+.toast.error {
+    background-color: #f44336;
+}
+
+.toast.info {
+    background-color: #2196F3;
+}
+

@@ -74,7 +74,9 @@ document.addEventListener('DOMContentLoaded', function() {
         cartTotal: document.getElementById('cartTotal'),
         cardInstallments: document.getElementById('cardInstallments'),
         deliveryDate: document.getElementById('deliveryDate'),
-        pickupDate: document.getElementById('pickupDate')
+        pickupDate: document.getElementById('pickupDate'),
+        forgotPasswordLink: document.getElementById('forgotPasswordLink'),
+    loginEmailInput: document.querySelector('#loginForm input[type="email"]')
     };
 
     // ========== ESTADO DO CARRINHO ==========
@@ -97,6 +99,36 @@ document.addEventListener('DOMContentLoaded', function() {
             const minDate = new Date(today);
             minDate.setDate(today.getDate() + daysToAdd);
             element.min = minDate.toISOString().split('T')[0];
+        },
+        showToast: function(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 5000);
+        },
+        handleForgotPassword: function(email) {
+            // Aqui você pode implementar a lógica de recuperação de senha
+            // Por enquanto, vamos apenas mostrar um feedback
+            console.log('Solicitação de recuperação de senha para:', email);
+            
+            // Simulando uma requisição assíncrona
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    // Em uma implementação real, você faria uma requisição AJAX para seu backend
+                    resolve(true);
+                }, 1000);
+            });
         }
     };
 
@@ -164,6 +196,37 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             window.addEventListener('beforeunload', () => {
                 this.saveCart();
+            });
+
+            elements.forgotPasswordLink?.addEventListener('click', async (e) => {
+                e.preventDefault();
+                
+                if (!elements.loginEmailInput) {
+                    console.error('Elemento loginEmailInput não encontrado!');
+                    return;
+                }
+                const email = elements.loginEmailInput.value;
+                
+                if (!email) {
+                    utils.showToast('Por favor, informe seu e-mail cadastrado', 'error');
+                    return;
+                }
+                
+                const loadingToast = utils.showToast('Processando sua solicitação...', 'info');
+                
+                try {
+                    const success = await utils.handleForgotPassword(email);
+                    
+                    if (success) {
+                        utils.showToast('Um e-mail com instruções foi enviado para seu endereço cadastrado');
+                        document.getElementById('authModal').style.display = 'none';
+                    } else {
+                        utils.showToast('Ocorreu um erro. Por favor, tente novamente mais tarde.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erro ao processar recuperação de senha:', error);
+                    utils.showToast('Erro ao processar sua solicitação', 'error');
+                }
             });
         },
 

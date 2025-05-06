@@ -1846,21 +1846,31 @@ button {
 
 /* Estilo para o link "Esqueci minha senha" */
 .forgot-password {
+    width: 100%;
+    padding: 14px;
+    background: var(--premium-gold);
+    border: none;
+    border-radius: 6px;
+    font-family: var(--font-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
     text-align: center;
-    margin-top: 15px;
-    padding: 10px 0;
+
 }
 
 .forgot-password a {
-    color: #8B4513;
+    color: white;
     text-decoration: none;
-    font-size: 14px;
-    transition: color 0.3s;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    text-transform: uppercase;
 }
 
-.forgot-password a:hover {
-    color: #A0522D;
-    text-decoration: underline;
+.forgot-password:hover {
+    background: var(--premium-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 /* Estilo para as notificações toast */

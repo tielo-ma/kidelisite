@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reinicia a animação do conteúdo
         const activeContent = slides[index].querySelector('.slide-content');
         activeContent.classList.remove('animate__fadeInUp');
-        void activeContent.offsetWidth; // Trigger reflow
+        void activeContent.offsetWidth; 
         activeContent.classList.add('animate__fadeInUp');
     }
 

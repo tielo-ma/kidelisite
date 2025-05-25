@@ -3,7 +3,7 @@
     overflow: hidden;
     height: 80vh;
     max-height: 600px;
-    width: 100%; /* Garante que o carrossel ocupe toda a largura */
+    width: 100%; 
 }
 
 .slide {
@@ -27,17 +27,17 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
-    display: block; /* Remove espaços indesejados */
+    display: block; 
 }
 
 /* Conteúdo responsivo */
 .slide-content {
     position: absolute;
-    bottom: 10%; /* Ajustado para telas menores */
+    bottom: 10%; 
     left: 5%;
-    right: 5%; /* Limita a largura em mobile */
+    right: 5%;
     max-width: 500px;
-    width: 90%; /* Flexível em telas pequenas */
+    width: 90%; 
     padding: 1.5rem;
     background-color: rgba(255, 255, 255, 0.9);
     border-radius: var(--radius-md);
@@ -50,7 +50,7 @@
 /* Títulos responsivos */
 .slide-content h2 {
     font-family: var(--font-secondary);
-    font-size: clamp(1.8rem, 4vw, 2.5rem); /* Tamanho fluído */
+    font-size: clamp(1.8rem, 4vw, 2.5rem); 
     margin-bottom: 0.8rem;
 }
 
@@ -74,7 +74,7 @@
 /* Media Queries para ajustes específicos */
 @media (max-width: 768px) {
     .carrossel {
-        height: 60vh; /* Altura menor em mobile */
+        height: 60vh; 
         max-height: 400px;
     }
     

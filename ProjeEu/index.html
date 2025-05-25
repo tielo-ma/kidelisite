@@ -1,110 +1,518 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-
+<html lang="pt-BR" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Marcelo Andrade | Estudante de Desenvolvimento</title>
+    <meta name="description" content="Portfólio de Marcelo Andrade de Oliveira, estudante de desenvolvimento web buscando oportunidades de estágio">
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+    
+    <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@200;500&display=swap" rel="stylesheet">
-    <title>Marcelo Andrade</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Animações -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <div class="caixa-principal" id="home">
-        <nav>
-            <h2 class="portfolio">Portfó<span>lio</span></h2>
-            <div class="menu-toggle" id="mobile-menu">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-              </div>
-              <ul class="nav-list">
-            <ul>
-                <li><a class="link-menu" href="#home">Home</a></li>
-                <li><a class="link-menu" href="#sobre">Sobre</a></li>
-                <li><a class="link-menu" href="#projetos-id">Projetos</a></li>
-                <li><a class="link-menu" href="#fale-comigo">Fale comigo</a></li>
-            </ul>
-        </nav>
-
-        <div class="meu-nome">
-            <h1>Marcelo <span>Andrade</span></h1>
-            <h3>- Desenvolvedor Web/Mobile</h3>
-            <h3>- Infraestrutura de redes e internet</h3>
-            <h3>- Segurança cibernética</h3>
-            <h3>- Banco de dados</h3>
-            <h3>- UX/UI Design</h3>
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="preloader-spinner">
+            <div class="preloader-spinner-inner"></div>
         </div>
     </div>
 
-    <section id="sobre">
-        <img src="Ellipse 1.svg">
-        <div>
-            <h2>Sobre mim</h2>
-            <p style="word-spacing: 8px;">Olá! Eu sou Marcelo, um programador apaixonado por criar soluções inovadoras e eficazes. Com uma mente curiosa e uma paixão por aprender, eu estou sempre buscando novas maneiras de melhorar a experiência do usuário e resolver problemas complexos.</p>
-            <p>Se você está procurando por um desenvolvedor/programador que possa ajudá-lo a transformar suas ideias em realidade, estou aqui para ajudar.</p>
-            <button onclick="window.open('https://api.whatsapp.com/send?phone=5511934184230', '_blank')">Entre em contato</button>
+    <!-- Cursor Personalizado -->
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <div class="logo">
+                <a href="#home" class="logo-link">
+                    <span class="logo-text">Marcelo</span>
+                    <span class="logo-highlight">.</span>
+                </a>
+            </div>
+            
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li class="nav-item"><a href="#home" class="nav-link active" data-cursor="hover">Início</a></li>
+                    <li class="nav-item"><a href="#about" class="nav-link" data-cursor="hover">Minha Jornada</a></li>
+                    <li class="nav-item"><a href="#skills" class="nav-link" data-cursor="hover">Habilidades</a></li>
+                    <li class="nav-item"><a href="#projects" class="nav-link" data-cursor="hover">Projetos</a></li>
+                    <li class="nav-item"><a href="#contact" class="nav-link" data-cursor="hover">Contato</a></li>
+                </ul>
+                
+                <div class="nav-actions">
+                    <a href="#contact" class="btn btn-sm btn-primary" data-cursor="hover">Disponível para Estágio</a>
+                    <div class="theme-toggle" data-cursor="hover">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                </div>
+            </nav>
+            
+            <div class="menu-toggle" data-cursor="hover">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content" data-aos="fade-right">
+                <h4 class="hero-subtitle">Olá, eu sou</h4>
+                <h1 class="hero-title">
+                    <span class="text-gradient">Marcelo Andrade</span>
+                </h1>
+                <p class="hero-text">Estudante de desenvolvimento web apaixonado por criar soluções digitais e buscando minha primeira oportunidade profissional.</p>
+                
+                <div class="hero-actions">
+                    <a href="#projects" class="btn btn-primary" data-cursor="hover">
+                        <span>Ver Projetos</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="#contact" class="btn btn-outline" data-cursor="hover">
+                        <span>Contato</span>
+                        <i class="fas fa-comment-dots"></i>
+                    </a>
+                </div>
+                
+                <div class="hero-social">
+                    <a href="https://github.com" class="social-link" aria-label="GitHub" data-cursor="hover" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://linkedin.com" class="social-link" aria-label="LinkedIn" data-cursor="hover" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="mailto:90ma.celo@gmail.com" class="social-link" aria-label="Email" data-cursor="hover">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="hero-image" data-aos="fade-left">
+                <div class="image-wrapper">
+                    <div class="profile-frame">
+                        <img src="./Ellipse 1.svg" alt="Marcelo Andrade" class="profile-image">
+                        <div class="frame-decoration"></div>
+                    </div>
+                    <div class="image-badge">
+                        <span class="badge-text">Disponível</span>
+                        <span class="badge-subtext">Para Estágio</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <div class="projetos" id="projetos-id">
-        <h2>Principais Projetos</h2>
-
-        <div class="card-projetos">
-
-            <div class="card">
-                <img src="https://images.vexels.com/media/users/3/200863/isolated/preview/2a61b8f2e61d56472dc468a932d00b11-bolo-de-chocolate-com-cobertura-de-straberry.png">
-                <h5>Kideli</h5>
-                <p>Projeto de aplicativo para uma confeitaria, ainda esta sendo trabalho as estruturas e alguns códigos.</p>
-                <a href="https://bug-free-enigma-q79jrvww754q39w7q-8000.app.github.dev/" target="_blank">Ver Projeto</a>
+    <!-- About Section -->
+    <section class="about section" id="about">
+        <div class="container">
+            <div class="about-image" data-aos="fade-right">
+                <div class="image-wrapper">
+                    <img src="./tec3.webp" alt="Sobre mim" class="profile-image">
+                    <div class="image-badge">
+                        <span class="badge-text">100%</span>
+                        <span class="badge-subtext">Dedicado</span>
+                    </div>
+                </div>
             </div>
+            
+            <div class="about-content" data-aos="fade-left">
+                <h2 class="section-title">Minha <span class="text-gradient">Jornada</span></h2>
+                <p class="section-subtitle">Como descobri minha paixão pela programação</p>
+                
+                <div class="about-text">
+                    <p>Desde que tive meu primeiro contato com desenvolvimento, soube que havia encontrado minha vocação. O que começou como curiosidade em criar e modificar sistemas transformou-se em uma busca constante por conhecimento.</p>
+                    <p>Atualmente estou cursando Análise e Desenvolvimento de Sistemas na Estácio, com previsão de conclusão no final de 2026, onde tenho a oportunidade de aprimorar minhas habilidades técnicas e desenvolver projetos práticos que demonstram minha evolução constante.</p>
+                </div>
+                
+                <div class="about-tabs">
+                    <div class="tab active" data-tab="education" data-cursor="hover">Formação</div>
+                    <div class="tab" data-tab="goals" data-cursor="hover">Objetivos</div>
+                    <div class="tab" data-tab="passion" data-cursor="hover">Motivação</div>
+                </div>
+                
+                <div class="tab-content active" data-tab-content="education">
+                    <div class="education-item">
+                        <h3>Análise e Desenvolvimento de Sistemas</h3>
+                        <p class="institution">Estácio</p>
+                        <p class="period">2024 - Atualmente</p>
+                        <p class="description">Foco em desenvolvimento web, algoritmos e estruturas de dados, com participação em projetos práticos de programação.</p>
+                    </div>
+                </div>
 
-            <div class="card">
-                <img src="https://png.pngtree.com/png-clipart/20240621/original/pngtree-coffee-cup-vector-illustration-png-image_15376352.png">
-                <h5>Cafeteria</h5>
-                <p>Projeto de uma cafeteria, onde o site conta com um cabeçalho responsivo com links direto para as sessões, feito com HTML5 e CSS utilizando efeitos com hover.</p>
-                <a href="https://coruscating-centaur-72bcdb.netlify.app/" target="_blank">Ver Projeto</a>
+                <div class="tab-content" data-tab-content="goals">
+                    <div class="goals-container">
+                        <div class="goal-card">
+                            <div class="goal-icon">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <h3>Objetivo Imediato</h3>
+                            <p>Consolidar meus conhecimentos através de um estágio desafiador, aplicando na prática o que aprendo na faculdade.</p>
+                        </div>
+                        
+                        <div class="goal-card">
+                            <div class="goal-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3>Meta de Carreira</h3>
+                            <p>Me tornar um desenvolvedor versátil, capaz de criar soluções completas e eficientes.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" data-tab-content="passion">
+                    <div class="passion-content">
+                        <div class="passion-item">
+                            <div class="passion-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <p>A tecnologia me motiva por conseguir construir com códigos algum sistema ou site onde o cliente irá interagir</p>
+                        </div>
+                        
+                        <div class="passion-item">
+                            <div class="passion-icon">
+                                <i class="fas fa-puzzle-piece"></i>
+                            </div>
+                            <p>Adoro o desafio de resolver problemas complexos e ver todas as peças se encaixando no desenvolvimento de um projeto.</p>
+                        </div>
+                        
+                        <div class="passion-item">
+                            <div class="passion-icon">
+                                <i class="fas fa-seedling"></i>
+                            </div>
+                            <p>Me vejo como um desenvolvedor em constante crescimento, sempre aprendendo e me adaptando às novas tecnologias.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="about-actions">
+                    <a href="#contact" class="btn btn-primary" data-cursor="hover">
+                        <span>Vamos conversar</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline" data-cursor="hover" id="downloadCV">
+                        <span>Baixar CV</span>
+                        <i class="fas fa-download"></i>
+                    </a>
+                </div>
             </div>
-
-            <div class="card">
-                <img src="https://img.pikbest.com/origin/09/29/85/pIkbEsT98pIkbEsTfGQ.png!w700wp">
-                <h5>Sua Marca</h5>
-                <p>Site disponível para venda de carros esportivos, onde o intuito do site é mostrar os detalhes e ter um link direto para uma negociação, adaptável para outros tipos de negócio.</p>
-                <a href="https://golden-tapioca-76e191.netlify.app/" target="_blank">Ver Projeto</a>
-            </div>
-
         </div>
-    </div>
+    </section>
 
-    <footer id="fale-comigo">
-        <h5>Marcelo Andrade</h5>
-        <p>Para mais informações</p>
-
-        <div class="social">
-            <a href="https://www.linkedin.com/in/marcelo-andrade-984170310" target="_blank">
-                <img src="linkedin.svg">
-            </a>
-
-            <a href="tel:+5511934184230">
-                <img src="whatsapp.svg">
-            </a>
+    <!-- Skills Section -->
+    <section class="skills section" id="skills">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2 class="section-title">Minhas <span class="text-gradient">Habilidades</span></h2>
+                <p class="section-subtitle">Tecnologias que estou estudando e aplicando em projetos</p>
+            </div>
+            
+            <div class="skills-container">
+                <div class="skills-category" data-aos="fade-up">
+                    <h3 class="category-title">Front-end</h3>
+                    <div class="skills-list">
+                        <div class="skill-progress" data-level="60%">
+                            <div class="skill-info">
+                                <span class="skill-name">HTML5</span>
+                                <span class="skill-percent">60%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                        </div>
+                        <div class="skill-progress" data-level="65%">
+                            <div class="skill-info">
+                                <span class="skill-name">CSS3</span>
+                                <span class="skill-percent">65%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                        </div>
+                        <div class="skill-progress" data-level="50%">
+                            <div class="skill-info">
+                                <span class="skill-name">JavaScript</span>
+                                <span class="skill-percent">50%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skills-category" data-aos="fade-up" data-aos-delay="100">
+                    <h3 class="category-title">Back-end</h3>
+                    <div class="skills-list">
+                        <div class="skill-progress" data-level="45%">
+                            <div class="skill-info">
+                                <span class="skill-name">Node.js</span>
+                                <span class="skill-percent">45%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                        </div>
+                        <div class="skill-progress" data-level="70%">
+                            <div class="skill-info">
+                                <span class="skill-name">Python</span>
+                                <span class="skill-percent">70%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                        </div>
+                        <div class="skill-progress" data-level="45%">
+                            <div class="skill-info">
+                                <span class="skill-name">SQL</span>
+                                <span class="skill-percent">45%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skills-category" data-aos="fade-up" data-aos-delay="200">
+                    <h3 class="category-title">Ferramentas</h3>
+                    <div class="skills-list">
+                        <div class="skill-progress" data-level="40%">
+                            <div class="skill-info">
+                                <span class="skill-name">Git</span>
+                                <span class="skill-percent">40%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                        </div>
+                        <div class="skill-progress" data-level="35%">
+                            <div class="skill-info">
+                                <span class="skill-name">Figma</span>
+                                <span class="skill-percent">35%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </section>
 
+    <!-- Projects Section -->
+    <section class="projects section" id="projects">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2 class="section-title">Meus <span class="text-gradient">Projetos</span></h2>
+                <p class="section-subtitle">Aplicações práticas do que venho aprendendo</p>
+            </div>
+            
+            <div class="projects-grid">
+                <!-- Projeto 1 - Buscador de Estabelecimentos -->
+                <div class="project-card" data-aos="fade-up" data-category="web" data-cursor="hover">
+                    <div class="project-image">
+                        <img src="princode.png" alt="Buscador de Estabelecimentos">
+                        <div class="project-overlay">
+                            <div class="project-links">
+                                <a href="#" class="project-link" target="_blank" rel="noopener noreferrer" data-cursor="hover">
+                                    <i class="fas fa-link"></i>
+                                </a>
+                                <a href="#" class="project-link" target="_blank" rel="noopener noreferrer" data-cursor="hover">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <h3 class="project-title">Buscador Geo-Especializado</h3>
+                        <p class="project-description">Sistema que utiliza API do Google Maps para encontrar estabelecimentos específicos em um raio determinado, com filtros avançados.</p>
+                        <div class="project-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">Google Maps API</span>
+                            <span class="tag">Geolocalização</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Projeto 2 - E-commerce Confeitaria -->
+                <div class="project-card" data-aos="fade-up" data-category="web" data-cursor="hover">
+                    <div class="project-image">
+                        <img src="printsite.png" alt="E-commerce de Confeitaria">
+                        <div class="project-overlay">
+                            <div class="project-links">
+                                <a href="https://github.com/tielo-ma/buscador/blob/main/buscador.py" class="" target="_blank" rel="noopener noreferrer" data-cursor="hover">
+                                    <i class="fas fa-link"></i>
+                                </a>
+                                <a href="https://github.com/tielo-ma/buscador/blob/main/buscador.py" class="project-link" target="_blank" rel="noopener noreferrer" data-cursor="hover">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <h3 class="project-title">Confeitaria Doces - E-commerce</h3>
+                        <p class="project-description">Site institucional com e-commerce integrado para confeitaria artesanal, desenvolvido com Bootstrap e JavaScript.</p>
+                        <div class="project-tags">
+                            <span class="tag">Bootstrap</span>
+                            <span class="tag">JavaScript</span>
+                            <span class="tag">E-commerce</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-footer" data-aos="fade-up">
+                <a href="#" class="btn btn-outline" data-cursor="hover" id="viewAllProjects">
+                    <span>Ver todos os projetos</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact section" id="contact">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2 class="section-title">Vamos <span class="text-gradient">Conversar</span></h2>
+                <p class="section-subtitle">Estou aberto a oportunidades de estágio e aprendizado</p>
+            </div>
+            
+            <div class="contact-container">
+                <div class="contact-info" data-aos="fade-right">
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="info-content">
+                            <h3 class="info-title">Email</h3>
+                            <a href="mailto:90ma.celo@gmail.com" class="info-link" data-cursor="hover">90ma.celo@gmail.com</a>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div class="info-content">
+                            <h3 class="info-title">Telefone</h3>
+                            <a href="https://wa.me/5511934184230" class="info-link" data-cursor="hover">(11) 93418-4230</a>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-social">
+                        <a href="https://github.com" class="social-link" aria-label="GitHub" data-cursor="hover" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://linkedin.com" class="social-link" aria-label="LinkedIn" data-cursor="hover" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="https://wa.me/5511934184230" class="social-link" aria-label="WhatsApp" data-cursor="hover" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <form class="contact-form" data-aos="fade-left" id="contactForm">
+                    <div class="form-group">
+                        <input type="text" class="form-input" id="name" placeholder=" " required>
+                        <label for="name" class="form-label">Seu Nome</label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="email" class="form-input" id="email" placeholder=" " required>
+                        <label for="email" class="form-label">Seu Email</label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" class="form-input" id="subject" placeholder=" ">
+                        <label for="subject" class="form-label">Assunto</label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <textarea class="form-input" id="message" placeholder=" " rows="5" required></textarea>
+                        <label for="message" class="form-label">Sua Mensagem</label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" data-cursor="hover">
+                        <span>Enviar Mensagem</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <a href="#home" class="logo-link" data-cursor="hover">
+                        <span class="logo-text">Portfólio</span>
+                        <span class="logo-highlight">.</span>
+                    </a>
+                    <p class="footer-text">Estudante de desenvolvimento buscando minha primeira oportunidade profissional.</p>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="links-group">
+                        <h3 class="links-title">Navegação</h3>
+                        <ul class="links-list">
+                            <li><a href="#home" class="footer-link" data-cursor="hover">Início</a></li>
+                            <li><a href="#about" class="footer-link" data-cursor="hover">Minha Jornada</a></li>
+                            <li><a href="#projects" class="footer-link" data-cursor="hover">Projetos</a></li>
+                            <li><a href="#contact" class="footer-link" data-cursor="hover">Contato</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="links-group">
+                        <h3 class="links-title">Contato</h3>
+                        <ul class="links-list">
+                            <li><a href="mailto:90ma.celo@gmail.com" class="footer-link" data-cursor="hover">90ma.celo@gmail.com</a></li>
+                            <li><a href="https://wa.me/5511934184230" class="footer-link" data-cursor="hover">(11) 93418-4230</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="copyright">&copy; <span id="year"></span> Portfólio. Todos os direitos reservados.</p>
+                <div class="legal-links">
+                    <a href="#" class="legal-link" data-cursor="hover" id="privacyPolicy">Política de Privacidade</a>
+                </div>
+            </div>
+        </div>
     </footer>
 
-    <script>
-        const mobileMenu = document.getElementById('mobile-menu');
-        const navList = document.querySelector('.nav-list');
-      
-        mobileMenu.addEventListener('click', () => {
-          navList.classList.toggle('active');
-        });
-      </script>
+    <!-- Back to Top -->
+    <a href="#home" class="back-to-top" aria-label="Voltar ao topo" data-cursor="hover">
+        <i class="fas fa-arrow-up"></i>
+    </a>
 
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="script.js"></script>
 </body>
-
-
 </html>

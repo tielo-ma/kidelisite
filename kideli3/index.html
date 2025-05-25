@@ -357,6 +357,25 @@
         <span class="cart-count" id="cartCount">0</span>
     </button>
 
+    <!-- Modal de recuperação -->
+    <div id="recoveryModal" class="recovery-modal">
+        <div class="recovery-modal-content">
+            <span class="recovery-close" id="recoveryClose">&times;</span>
+            <h2><i class="fas fa-key"></i> Recuperar Senha</h2>
+            
+            <form id="recoveryForm" class="recovery-form">
+                <div class="recovery-input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="recoveryEmail" placeholder="Digite seu e-mail cadastrado" required>
+                </div>
+                <button type="submit" class="recovery-submit-btn">
+                    <i class="fas fa-paper-plane"></i> Enviar Link
+                </button>
+            </form>
+            
+            <div id="recoveryMessage" class="recovery-message"></div>
+        </div>
+    </div>
     <!-- Modal do Carrinho -->
     <div id="cartModal" class="cart-modal">
         <div class="cart-modal-content">
@@ -529,7 +548,7 @@
         </div>
     </div>
 
-    <!-- Modal de Perfil do Cliente (Versão Completa - Única) -->
+    <!-- Modal de Perfil do Cliente -->
     <div id="profileModal" class="profile-modal" style="display: none;">
         <div class="profile-modal-content">
             <span id="profile-close" class="profile-close">&times;</span>
@@ -732,11 +751,11 @@
     <script src="js/carrossel.js"></script>
     <script src="https://sdk.mercadopago.com/js/v2"></script>
     <script src="js/main.js"></script>
-    <!-- Carrega profile-modal.js por último para garantir que o DOM esteja pronto -->
+    
     <script>
         // Patch para compatibilidade
         document.addEventListener('DOMContentLoaded', () => {
-          // Cria elementos faltantes como placeholders vazios
+          
           const createIfMissing = (id) => {
             if (!document.getElementById(id)) {
               const el = document.createElement('div');
@@ -746,14 +765,14 @@
             }
           };
       
-          // Elementos que o profile-modal.js espera encontrar
+        
           ['avatar-input', 'avatar-preview', 'profile-cpf', 'preferences-content'].forEach(createIfMissing);
         });
       </script>
     <script src="js/profile-modal.js"></script>
     
     <script>
-        // Inicializa o modal quando o DOM estiver pronto
+        // carrega o DOM
         document.addEventListener('DOMContentLoaded', () => {
             // Verifica se o usuário está logado
             const isLoggedIn = sessionStorage.getItem('auth_token') !== null;

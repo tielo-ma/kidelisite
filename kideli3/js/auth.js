@@ -425,7 +425,7 @@ window.Auth = {
       sessionStorage.removeItem('auth_user');
       localStorage.removeItem('kideliCart');
       
-      // Atualiza a UI de autenticação
+      // Atualiza a UI de auth
       this.updateAuthUI();
       
       showNotification('Você foi desconectado', 'info');
@@ -455,11 +455,9 @@ window.Auth = {
   }
 };
 
-// Inicializa quando o DOM estiver pronto
+// Inicialização
 if (document.readyState === 'complete') {
   initializeAuth();
 } else {
   document.addEventListener('DOMContentLoaded', initializeAuth);
 }
-
-// ProfileModal (versão simplificada)

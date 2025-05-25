@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const MercadoPago = require('mercadopago');
+const PagBank = require('pagbank-sdk');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -10,6 +10,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
+const { htmlToText } = require('html-to-text');
 
 // Inicialização do app
 const app = express();
@@ -17,507 +18,694 @@ const app = express();
 // Configurações de segurança
 app.use(helmet());
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS.split(',') || ['https://seusite.com']
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  credentials: true
 }));
 app.use(express.json({ limit: '10kb' }));
 
-// Rate Limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100 // limite por IP
+// Limitação de taxa
+const limitador = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'Muitas requisições deste IP, por favor tente novamente mais tarde'
 });
-app.use('/auth', limiter);
+app.use('/auth', limitador);
 
-// Conexão com MongoDB (produção)
+// Configuração do PagBank
+const clientePagBank = new PagBank({
+  client_id: process.env.PAGBANK_CLIENT_ID,
+  client_secret: process.env.PAGBANK_CLIENT_SECRET,
+  sandbox: process.env.NODE_ENV !== 'production'
+});
+
+// Conexão com MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true
 }).then(() => console.log('Conectado ao MongoDB'))
-  .catch(err => console.error('Erro MongoDB:', err));
+  .catch(err => console.error('Erro no MongoDB:', err));
 
 // Modelos
-const UserSchema = new mongoose.Schema({
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    name: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now },
-    resetPasswordToken: String,
-    resetPasswordExpire: Date,
-    refreshTokens: [{
-      token: String,
-      expiresAt: Date
-    }]
-  }, {
-    toJSON: {
-      transform: function(doc, ret) {
-        delete ret.password;
-        delete ret.refreshTokens;
-        delete ret.resetPasswordToken;
-        delete ret.resetPasswordExpire;
-      }
+const UsuarioSchema = new mongoose.Schema({
+  email: { 
+    type: String, 
+    required: true, 
+    unique: true,
+    validate: {
+      validator: (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+      message: 'Por favor, forneça um e-mail válido'
     }
-  });
-  
-  UserSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
-    this.password = await bcrypt.hash(this.password, 12);
-    next();
-  });
-  
-  // Método para criar token de acesso
-  UserSchema.methods.createAccessToken = function() {
-    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN || '15m'
-    });
-  };
-  
-  // Método para criar refresh token (adiciona à lista de tokens válidos)
-  UserSchema.methods.createRefreshToken = async function() {
-    const refreshToken = jwt.sign({ id: this._id }, process.env.JWT_REFRESH_SECRET, {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
-    });
-    
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 dias
-    
-    this.refreshTokens = this.refreshTokens.concat({
-      token: refreshToken,
-      expiresAt
-    });
-    
-    await this.save();
-    return refreshToken;
-  };
-  
-  // Método para verificar refresh token
-  UserSchema.methods.verifyRefreshToken = function(token) {
-    try {
-      jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-      
-      // Verifica se o token está na lista de tokens válidos
-      const tokenExists = this.refreshTokens.some(
-        t => t.token === token && t.expiresAt > new Date()
-      );
-      
-      return tokenExists;
-    } catch (err) {
-      return false;
+  },
+  senha: { type: String, required: true },
+  nome: { type: String, required: true },
+  criadoEm: { type: Date, default: Date.now },
+  tokenResetSenha: String,
+  expiracaoResetSenha: Date,
+  tokensRefresh: [{
+    token: String,
+    expiraEm: Date
+  }]
+}, {
+  toJSON: {
+    transform: function(doc, ret) {
+      delete ret.senha;
+      delete ret.tokensRefresh;
+      delete ret.tokenResetSenha;
+      delete ret.expiracaoResetSenha;
     }
-  };
-  
-  // Método para revogar refresh token
-  UserSchema.methods.revokeRefreshToken = async function(token) {
-    this.refreshTokens = this.refreshTokens.filter(t => t.token !== token);
-    await this.save();
-  };
-  
-  const User = mongoose.model('User', UserSchema);
-
-// Configuração de e-mail (produção)
-const transporter = nodemailer.createTransport({
-  service: 'SendGrid',
-  auth: {
-    user: process.env.SENDGRID_USER,
-    pass: process.env.SENDGRID_PASS
   }
 });
 
-// Configuração Mercado Pago
-MercadoPago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN,
-  integrator_id: process.env.MP_INTEGRATOR_ID
+UsuarioSchema.pre('save', async function(next) {
+  if (!this.isModified('senha')) return next();
+  this.senha = await bcrypt.hash(this.senha, 12);
+  next();
 });
 
-// Middlewares
-const authenticate = async (req, res, next) => {
-    let token;
-    if (req.headers.authorization?.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
-    }
+UsuarioSchema.methods.criarTokenAcesso = function() {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRA_EM || '15m'
+  });
+};
+
+UsuarioSchema.methods.criarTokenRefresh = async function() {
+  const tokenRefresh = jwt.sign({ id: this._id }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRA_EM || '7d'
+  });
   
-    if (!token) {
-      return res.status(401).json({
-        status: 'fail',
-        message: 'Por favor, faça login para acessar'
-      });
-    }
+  const expiraEm = new Date();
+  expiraEm.setDate(expiraEm.getDate() + 7);
   
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.id);
-      
-      if (!user) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'Usuário não encontrado'
-        });
-      }
+  this.tokensRefresh = this.tokensRefresh.concat({
+    token: tokenRefresh,
+    expiraEm
+  });
   
-      req.user = user;
-      next();
-    } catch (err) {
-      // Verifica se o erro é de expiração
-      if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({
-          status: 'fail',
-          message: 'Token expirado',
-          code: 'TOKEN_EXPIRED'
-        });
-      }
-      
-      return res.status(401).json({
-        status: 'fail',
-        message: 'Token inválido'
-      });
+  await this.save();
+  return tokenRefresh;
+};
+
+UsuarioSchema.methods.verificarTokenRefresh = function(token) {
+  try {
+    jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const tokenExiste = this.tokensRefresh.some(
+      t => t.token === token && t.expiraEm > new Date()
+    );
+    return tokenExiste;
+  } catch (err) {
+    return false;
+  }
+};
+
+UsuarioSchema.methods.revogarTokenRefresh = async function(token) {
+  this.tokensRefresh = this.tokensRefresh.filter(t => t.token !== token);
+  await this.save();
+};
+
+const Usuario = mongoose.model('Usuario', UsuarioSchema);
+
+// Modelo de Pagamento para PagBank
+const PagamentoSchema = new mongoose.Schema({
+  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true },
+  idPedido: { type: String, required: true, unique: true, index: true },
+  idCobranca: { type: String },
+  itens: [{
+    idReferencia: String,
+    nome: String,
+    valorUnitario: Number,
+    quantidade: Number,
+    descricao: String
+  }],
+  status: { 
+    type: String, 
+    enum: ['pendente', 'aprovado', 'cancelado', 'reembolsado', 'falhou'],
+    default: 'pendente'
+  },
+  metodoPagamento: String,
+  respostaPagBank: mongoose.Schema.Types.Mixed,
+  notificacaoPagBank: mongoose.Schema.Types.Mixed
+}, { timestamps: true });
+
+const Pagamento = mongoose.model('Pagamento', PagamentoSchema);
+
+// Configuração de e-mail
+const transportador = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
+  port: process.env.SMTP_PORT || 587,
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USUARIO || process.env.SENDGRID_USUARIO || 'apikey',
+    pass: process.env.SMTP_SENHA || process.env.SENDGRID_SENHA
+  },
+  tls: {
+    rejectUnauthorized: process.env.NODE_ENV === 'production'
+  },
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100
+});
+
+async function enviarEmail(para, assunto, conteudoHtml) {
+  const opcoesEmail = {
+    from: process.env.EMAIL_DE,
+    replyTo: process.env.EMAIL_RESPONDER_PARA || process.env.EMAIL_DE,
+    to: para,
+    subject: assunto,
+    html: conteudoHtml,
+    text: htmlToText(conteudoHtml),
+    headers: {
+      'X-Priority': '1',
+      'X-Mailer': 'KiDeliMailer/1.0'
     }
   };
+
+  try {
+    const info = await transportador.sendMail(opcoesEmail);
+    console.log(`E-mail enviado para ${para}`);
+    return { sucesso: true, idMensagem: info.messageId };
+  } catch (erro) {
+    console.error('Falha ao enviar e-mail:', erro);
+    return { 
+      sucesso: false, 
+      erro: 'Falha ao enviar e-mail',
+      detalhes: erro.message 
+    };
+  }
+}
+
+// Middleware
+const autenticar = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization?.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    return res.status(401).json({
+      sucesso: false,
+      erro: 'Token de acesso não fornecido'
+    });
+  }
+
+  try {
+    const decodificado = jwt.verify(token, process.env.JWT_SECRET);
+    const usuario = await Usuario.findById(decodificado.id);
+    
+    if (!usuario) {
+      return res.status(404).json({
+        sucesso: false,
+        erro: 'Usuário não encontrado'
+      });
+    }
+
+    req.usuario = usuario;
+    next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        sucesso: false,
+        erro: 'Token expirado',
+        codigo: 'TOKEN_EXPIRADO'
+      });
+    }
+    
+    return res.status(401).json({
+      sucesso: false,
+      erro: 'Token inválido'
+    });
+  }
+};
 
 // Rotas de Autenticação
-app.post('/auth/register', [
-    body('email').isEmail().normalizeEmail(),
-    body('password').isLength({ min: 8 }),
-    body('name').notEmpty().trim().escape()
-  ], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-  
-    try {
-      const { email, password, name } = req.body;
-  
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({
-          status: 'fail',
-          message: 'E-mail já cadastrado'
-        });
-      }
-  
-      const user = await User.create({ email, password, name });
-  
-      // Alteração aqui - Gera ambos os tokens
-      const accessToken = user.createAccessToken();
-      const refreshToken = await user.createRefreshToken();
-  
-      res.status(201).json({
-        status: 'success',
-        tokens: {
-          access: accessToken,
-          refresh: refreshToken
-        },
-        data: {
-          user: {
-            id: user._id,
-            email: user.email,
-            name: user.name
-          }
-        }
-      });
-    } catch (err) {
-      console.error('Erro no registro:', err);
-      res.status(500).json({
-        status: 'error',
-        message: 'Erro ao criar conta'
-      });
-    }
-  });
-  
-  app.post('/auth/login', async (req, res) => {
-    try {
-      const { email, password } = req.body;
-  
-      const user = await User.findOne({ email }).select('+password');
-      if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.status(401).json({
-          status: 'fail',
-          message: 'E-mail ou senha incorretos'
-        });
-      }
-  
-      // Alteração aqui - Gera ambos os tokens
-      const accessToken = user.createAccessToken();
-      const refreshToken = await user.createRefreshToken();
-  
-      res.status(200).json({
-        status: 'success',
-        tokens: {
-          access: accessToken,
-          refresh: refreshToken
-        },
-        data: {
-          user: {
-            id: user._id,
-            email: user.email,
-            name: user.name
-          }
-        }
-      });
-    } catch (err) {
-      console.error('Erro no login:', err);
-      res.status(500).json({
-        status: 'error',
-        message: 'Erro ao fazer login'
-      });
-    }
-  });
-  
-  // NOVA ROTA - Logout
-  app.post('/auth/logout', authenticate, async (req, res) => {
-    try {
-      const token = req.headers.authorization?.split(' ')[1];
-      if (token) {
-        await req.user.revokeRefreshToken(token);
-      }
-      
-      res.status(200).json({
-        status: 'success',
-        message: 'Logout realizado com sucesso'
-      });
-    } catch (err) {
-      res.status(500).json({
-        status: 'error',
-        message: 'Erro ao fazer logout'
-      });
-    }
-  });
-  
-  // NOVA ROTA - Refresh Token
-  app.post('/auth/refresh', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-      return res.status(401).json({
-        status: 'fail',
-        message: 'Token não fornecido'
-      });
-    }
-  
-    try {
-      // Decodifica sem verificar ainda (para pegar o ID)
-      const decoded = jwt.decode(token);
-      if (!decoded?.id) throw new Error('Token inválido');
-      
-      const user = await User.findById(decoded.id);
-      if (!user) throw new Error('Usuário não encontrado');
-      
-      // Verifica se o token é válido
-      const isValid = user.verifyRefreshToken(token);
-      if (!isValid) throw new Error('Token inválido');
-      
-      // Revoga o token antigo
-      await user.revokeRefreshToken(token);
-      
-      // Cria novos tokens
-      const newAccessToken = user.createAccessToken();
-      const newRefreshToken = await user.createRefreshToken();
-      
-      res.status(200).json({
-        status: 'success',
-        tokens: {
-          access: newAccessToken,
-          refresh: newRefreshToken
-        }
-      });
-    } catch (err) {
-      res.status(401).json({
-        status: 'fail',
-        message: err.message || 'Token inválido ou expirado'
-      });
-    }
-  });
+app.post('/auth/registrar', [
+  body('email').isEmail().normalizeEmail(),
+  body('senha').isLength({ min: 8 }).withMessage('A senha deve ter no mínimo 8 caracteres'),
+  body('nome').notEmpty().trim().escape().withMessage('Nome é obrigatório')
+], async (req, res) => {
+  const erros = validationResult(req);
+  if (!erros.isEmpty()) {
+    return res.status(400).json({
+      sucesso: false,
+      erros: erros.array()
+    });
+  }
 
-// Rotas de Recuperação de Senha (Produção)
-app.post('/auth/forgot-password', async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
-      return res.status(200).json({
-        status: 'success',
-        message: 'Se existir uma conta com este e-mail, um link será enviado'
+    const { email, senha, nome } = req.body;
+    
+    if (await Usuario.findOne({ email })) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: 'Este e-mail já está cadastrado'
       });
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = Date.now() + 3600000; // 1 hora
+    const usuario = await Usuario.create({ email, senha, nome });
+    const tokenAcesso = usuario.criarTokenAcesso();
+    const tokenRefresh = await usuario.criarTokenRefresh();
 
-    await PasswordResetToken.create({
-      token: resetToken,
-      userId: user._id,
-      expiresAt: resetTokenExpiry
-    });
-
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-    const message = `
-      <h2>Redefinição de Senha</h2>
-      <p>Clique no link abaixo para redefinir sua senha:</p>
-      <a href="${resetUrl}" target="_blank">${resetUrl}</a>
-      <p>Este link expira em 1 hora.</p>
-    `;
-
-    await transporter.sendMail({
-      to: user.email,
-      from: process.env.EMAIL_FROM,
-      subject: 'Redefinição de Senha',
-      html: message
-    });
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Link de redefinição enviado para seu e-mail'
+    res.status(201).json({
+      sucesso: true,
+      dados: {
+        tokens: { acesso: tokenAcesso, refresh: tokenRefresh },
+        usuario: { id: usuario._id, email: usuario.email, nome: usuario.nome }
+      }
     });
   } catch (err) {
-    console.error('Erro ao solicitar reset:', err);
+    console.error('Erro no registro:', err);
     res.status(500).json({
-      status: 'error',
-      message: 'Erro ao processar solicitação'
+      sucesso: false,
+      erro: 'Erro ao criar conta'
     });
   }
 });
 
-app.post('/auth/reset-password/:token', async (req, res) => {
+app.post('/api/verificar-email', async (req, res) => {
   try {
-    const resetToken = await PasswordResetToken.findOne({
-      token: req.params.token,
-      expiresAt: { $gt: Date.now() }
-    });
-
-    if (!resetToken) {
+    const { email } = req.body;
+    
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({
-        status: 'fail',
-        message: 'Token inválido ou expirado'
+        sucesso: false,
+        erro: 'Por favor, forneça um e-mail válido'
       });
     }
 
-    const user = await User.findById(resetToken.userId);
-    if (!user) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Usuário não encontrado'
+    const existe = await Usuario.exists({ email });
+    res.status(200).json({
+      sucesso: true,
+      dados: { registrado: existe }
+    });
+  } catch (err) {
+    console.error('Erro ao verificar e-mail:', err);
+    res.status(500).json({
+      sucesso: false,
+      erro: 'Erro ao verificar e-mail'
+    });
+  }
+});
+
+app.post('/api/enviar-recuperacao', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: 'Por favor, forneça um e-mail válido'
       });
     }
 
-    user.password = req.body.password;
-    await user.save();
+    const usuario = await Usuario.findOne({ email });
 
-    await PasswordResetToken.deleteOne({ token: req.params.token });
+    if (!usuario) {
+      console.log(`Tentativa de recuperação para e-mail não cadastrado: ${email}`);
+      return res.status(200).json({ 
+        sucesso: false,
+        erro: 'Nenhuma conta encontrada com este endereço de e-mail'
+      });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    usuario.tokenResetSenha = token;
+    usuario.expiracaoResetSenha = Date.now() + 3600000;
+    await usuario.save();
+
+    const urlReset = `${process.env.FRONTEND_URL}/resetar-senha?token=${token}`;
+    
+    const resultadoEmail = await enviarEmail(
+      usuario.email,
+      'Redefinição de Senha - KiDeli',
+      `
+        <p>Recebemos uma solicitação para redefinir a senha da sua conta.</p>
+        <p>Clique no link abaixo para continuar:</p>
+        <a href="${urlReset}">Redefinir senha</a>
+        <p><small>Se você não solicitou esta alteração, por favor ignore este e-mail.</small></p>
+        <p><small>Este link expira em 1 hora.</small></p>
+      `
+    );
+
+    if (!resultadoEmail.sucesso) {
+      throw new Error('Falha no envio do e-mail');
+    }
+
+    console.log(`E-mail de recuperação enviado para: ${usuario.email}`);
 
     res.status(200).json({
-      status: 'success',
-      message: 'Senha redefinida com sucesso'
+      sucesso: true,
+      mensagem: 'E-mail de recuperação enviado com sucesso'
+    });
+
+  } catch (err) {
+    console.error('Erro no processo de recuperação:', {
+      erro: err.message,
+      stack: err.stack,
+      timestamp: new Date().toISOString()
+    });
+    
+    res.status(500).json({
+      sucesso: false,
+      erro: 'Ocorreu um erro ao processar sua solicitação'
+    });
+  }
+});
+
+app.post('/api/resetar-senha', async (req, res) => {
+  try {
+    const { token, novaSenha } = req.body;
+    
+    if (!token || !novaSenha || novaSenha.length < 8) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: 'Token e nova senha (mínimo 8 caracteres) são obrigatórios'
+      });
+    }
+
+    const usuario = await Usuario.findOne({
+      tokenResetSenha: token,
+      expiracaoResetSenha: { $gt: Date.now() }
+    });
+
+    if (!usuario) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: 'Token inválido ou expirado'
+      });
+    }
+
+    usuario.senha = await bcrypt.hash(novaSenha, 12);
+    usuario.tokenResetSenha = undefined;
+    usuario.expiracaoResetSenha = undefined;
+    await usuario.save();
+
+    res.status(200).json({
+      sucesso: true,
+      mensagem: 'Senha redefinida com sucesso'
     });
   } catch (err) {
     console.error('Erro ao resetar senha:', err);
     res.status(500).json({
-      status: 'error',
-      message: 'Erro ao redefinir senha'
+      sucesso: false,
+      erro: 'Erro ao redefinir senha'
     });
   }
 });
 
-// Rota Protegida de Exemplo
-app.get('/api/v1/me', authenticate, async (req, res) => {
+app.post('/auth/login', async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const { email, senha } = req.body;
+    
+    if (!email || !senha) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: 'E-mail e senha são obrigatórios'
+      });
+    }
+
+    const usuario = await Usuario.findOne({ email }).select('+senha');
+    
+    if (!usuario || !(await bcrypt.compare(senha, usuario.senha))) {
+      return res.status(401).json({
+        sucesso: false,
+        erro: 'Credenciais inválidas'
+      });
+    }
+
+    const tokenAcesso = usuario.criarTokenAcesso();
+    const tokenRefresh = await usuario.criarTokenRefresh();
+
+    res.status(200).json({
+      sucesso: true,
+      dados: {
+        tokens: { acesso: tokenAcesso, refresh: tokenRefresh },
+        usuario: { id: usuario._id, email: usuario.email, nome: usuario.nome }
+      }
+    });
+  } catch (err) {
+    console.error('Erro no login:', err);
+    res.status(500).json({
+      sucesso: false,
+      erro: 'Erro ao fazer login'
+    });
+  }
+});
+
+app.post('/auth/logout', autenticar, async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) await req.usuario.revogarTokenRefresh(token);
     
     res.status(200).json({
-      status: 'success',
-      data: {
-        user: {
-          id: user._id,
-          email: user.email,
-          name: user.name,
-          createdAt: user.createdAt
-        }
+      sucesso: true,
+      mensagem: 'Logout realizado com sucesso'
+    });
+  } catch (err) {
+    console.error('Erro ao fazer logout:', err);
+    res.status(500).json({
+      sucesso: false,
+      erro: 'Erro ao fazer logout'
+    });
+  }
+});
+
+app.post('/auth/refresh', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({
+      sucesso: false,
+      erro: 'Token não fornecido'
+    });
+  }
+
+  try {
+    const decodificado = jwt.decode(token);
+    if (!decodificado?.id) {
+      throw new Error('Token inválido');
+    }
+    
+    const usuario = await Usuario.findById(decodificado.id);
+    if (!usuario) {
+      throw new Error('Usuário não encontrado');
+    }
+    
+    if (!usuario.verificarTokenRefresh(token)) {
+      throw new Error('Token inválido');
+    }
+    
+    await usuario.revogarTokenRefresh(token);
+    
+    const novoTokenAcesso = usuario.criarTokenAcesso();
+    const novoTokenRefresh = await usuario.criarTokenRefresh();
+    
+    res.status(200).json({
+      sucesso: true,
+      dados: {
+        tokens: { acesso: novoTokenAcesso, refresh: novoTokenRefresh }
       }
+    });
+  } catch (err) {
+    console.error('Erro ao renovar token:', err);
+    res.status(401).json({
+      sucesso: false,
+      erro: err.message || 'Token inválido ou expirado'
+    });
+  }
+});
+
+// Rotas de Pagamento com PagBank
+app.post('/api/v1/pagamentos/criar-pedido', autenticar, [
+  body('itens').isArray({ min: 1 }).withMessage('Pelo menos um item é necessário'),
+  body('metodoPagamento').isIn(['CARTAO_CREDITO', 'PIX', 'BOLETO']),
+  body('cartao').optional().isObject()
+], async (req, res) => {
+  const erros = validationResult(req);
+  if (!erros.isEmpty()) {
+    return res.status(400).json({
+      sucesso: false,
+      erros: erros.array()
+    });
+  }
+
+  try {
+    const { itens, metodoPagamento, cartao } = req.body;
+
+    // Formata os itens para o padrão PagBank
+    const itensPedido = itens.map(item => ({
+      id_referencia: item.id || crypto.randomUUID(),
+      nome: item.nome,
+      quantidade: Number(item.quantidade),
+      valor_unitario: Math.round(Number(item.preco) * 100), // Em centavos
+      descricao: item.descricao || ''
+    }));
+
+    // Calcula o valor total
+    const valorTotal = itensPedido.reduce((soma, item) => 
+      soma + (item.valor_unitario * item.quantidade), 0);
+
+    // Cria a requisição de pagamento
+    const requisicaoPagamento = {
+      id_referencia: `pedido_${Date.now()}`,
+      cliente: {
+        nome: req.usuario.nome,
+        email: req.usuario.email
+      },
+      itens: itensPedido,
+      endereco_entrega: {
+        logradouro: 'Av. PagBank',
+        numero: '1234',
+        complemento: 'Sala 01',
+        bairro: 'Bairro PagBank',
+        cidade: 'São Paulo',
+        estado: 'SP',
+        pais: 'BRA',
+        cep: '01452002'
+      },
+      urls_notificacao: [
+        `${process.env.API_URL}/api/v1/pagamentos/webhook`
+      ],
+      cobrancas: [{
+        id_referencia: `cobranca_${Date.now()}`,
+        descricao: 'Pagamento via KiDeli',
+        valor: {
+          total: valorTotal,
+          moeda: 'BRL'
+        },
+        metodo_pagamento: {
+          tipo: metodoPagamento,
+          parcelas: 1,
+          capturar: true,
+          ...(metodoPagamento === 'CARTAO_CREDITO' && { cartao: {
+            tokenizado: cartao.token
+          }})
+        }
+      }]
+    };
+
+    const resposta = await clientePagBank.pedidos.criar(requisicaoPagamento);
+
+    // Salva o pagamento no banco de dados
+    await Pagamento.create({
+      usuario: req.usuario._id,
+      idPedido: resposta.id,
+      idCobranca: resposta.cobrancas?.[0]?.id,
+      itens: itensPedido,
+      metodoPagamento,
+      status: 'pendente',
+      respostaPagBank: resposta
+    });
+
+    res.status(200).json({
+      sucesso: true,
+      dados: {
+        id: resposta.id,
+        url_pagamento: resposta.links.find(link => link.rel === 'PAGAR')?.href
+      }
+    });
+  } catch (err) {
+    console.error('Erro ao criar pagamento:', err);
+    res.status(500).json({
+      sucesso: false,
+      erro: 'Erro ao processar pagamento',
+      detalhes: err.response?.data || err.message
+    });
+  }
+});
+
+// Webhook PagBank
+app.post('/api/v1/pagamentos/webhook', express.json(), async (req, res) => {
+  try {
+    const assinatura = req.headers['pagbank-assinatura'];
+    if (!clientePagBank.verificarAssinaturaWebhook(assinatura, req.body)) {
+      console.warn('Tentativa de webhook com assinatura inválida');
+      return res.status(403).send('Assinatura inválida');
+    }
+
+    const { evento, recurso } = req.body;
+    const idPagamento = recurso.pagamento?.id || recurso.pedido?.id;
+
+    if (!idPagamento) {
+      return res.status(400).send('ID do pagamento não encontrado');
+    }
+
+    // Atualiza o status do pagamento
+    const pagamento = await Pagamento.findOne({ 
+      $or: [{ idPedido: idPagamento }, { idCobranca: idPagamento }] 
+    });
+    
+    if (!pagamento) {
+      console.warn(`Pagamento não encontrado: ${idPagamento}`);
+      return res.status(404).send('Pagamento não encontrado');
+    }
+
+    // Mapeia os eventos do PagBank para os status do sistema
+    const mapeamentoStatus = {
+      'PAGAMENTO_CRIADO': 'pendente',
+      'PAGAMENTO_CONFIRMADO': 'aprovado',
+      'PAGAMENTO_CANCELADO': 'cancelado',
+      'PAGAMENTO_REEMBOLSADO': 'reembolsado',
+      'PAGAMENTO_FALHOU': 'falhou'
+    };
+
+    pagamento.status = mapeamentoStatus[evento] || pagamento.status;
+    pagamento.notificacaoPagBank = req.body;
+    await pagamento.save();
+
+    res.status(200).send('OK');
+  } catch (err) {
+    console.error('Erro no webhook:', err);
+    res.status(500).send('Erro interno no servidor');
+  }
+});
+
+// Rotas adicionais
+app.get('/api/v1/me', autenticar, async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario.id).select('-senha');
+    res.status(200).json({
+      sucesso: true,
+      dados: { usuario }
     });
   } catch (err) {
     console.error('Erro ao buscar perfil:', err);
     res.status(500).json({
-      status: 'error',
-      message: 'Erro ao buscar dados do usuário'
+      sucesso: false,
+      erro: 'Erro ao buscar dados do usuário'
     });
   }
 });
 
-// Rota do Mercado Pago (Produção)
-app.post('/api/v1/payments/create-preference', authenticate, [
-  body('items').isArray({ min: 1 }),
-  body('items.*.name').notEmpty(),
-  body('items.*.price').isFloat({ gt: 0 }),
-  body('items.*.quantity').isInt({ gt: 0 })
+app.put('/api/v1/perfil', autenticar, [
+  body('email').optional().isEmail().withMessage('E-mail inválido'),
+  body('nome').optional().trim().escape(),
+  body('telefone').optional().trim().escape()
 ], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+  const erros = validationResult(req);
+  if (!erros.isEmpty()) {
+    return res.status(400).json({
+      sucesso: false,
+      erros: erros.array()
+    });
   }
 
   try {
-    const { items } = req.body;
+    const usuario = await Usuario.findByIdAndUpdate(
+      req.usuario.id,
+      req.body,
+      { new: true, runValidators: true }
+    ).select('-senha');
 
-    const preference = {
-      items: items.map(item => ({
-        id: item.id || crypto.randomUUID(),
-        title: item.name,
-        unit_price: Number(item.price),
-        quantity: Number(item.quantity),
-        picture_url: item.image || `${process.env.SITE_URL}/images/default-product.jpg`,
-        description: item.description || ''
-      })),
-      payer: {
-        name: req.user.name,
-        email: req.user.email
-      },
-      payment_methods: {
-        installments: 12,
-        default_installments: 1
-      },
-      back_urls: {
-        success: `${process.env.SITE_URL}/payment/success`,
-        failure: `${process.env.SITE_URL}/payment/failure`,
-        pending: `${process.env.SITE_URL}/payment/pending`
-      },
-      auto_return: "approved",
-      external_reference: req.user.id,
-      notification_url: `${process.env.API_URL}/api/v1/payments/webhook`,
-      statement_descriptor: "KIDELI"
-    };
-
-    const response = await MercadoPago.preferences.create(preference);
-    
     res.status(200).json({
-      status: 'success',
-      data: {
-        id: response.body.id,
-        init_point: response.body.init_point
-      }
+      sucesso: true,
+      dados: { usuario }
     });
   } catch (err) {
-    console.error('Erro ao criar preferência:', err);
+    console.error('Erro ao atualizar perfil:', err);
     res.status(500).json({
-      status: 'error',
-      message: 'Erro ao processar pagamento'
+      sucesso: false,
+      erro: 'Erro ao atualizar perfil'
     });
-  }
-});
-
-// Webhook para notificações
-app.post('/api/v1/payments/webhook', express.json({ type: 'application/json' }), (req, res) => {
-  try {
-    const paymentId = req.body.data?.id;
-    if (!paymentId) return res.status(400).send('Bad Request');
-
-    // Processar notificação de pagamento
-    console.log('Recebido webhook para pagamento:', paymentId);
-    
-    // Aqui você implementaria a lógica para atualizar o status do pedido
-    
-    res.status(200).send('OK');
-  } catch (err) {
-    console.error('Erro no webhook:', err);
-    res.status(500).send('Internal Server Error');
   }
 });
 
@@ -525,66 +713,13 @@ app.post('/api/v1/payments/webhook', express.json({ type: 'application/json' }),
 app.use((err, req, res, next) => {
   console.error('Erro não tratado:', err.stack);
   res.status(500).json({
-    status: 'error',
-    message: 'Erro interno no servidor'
+    sucesso: false,
+    erro: 'Erro interno no servidor'
   });
 });
 
-// Rotas adicionais para o frontend
-app.get('/api/v1/profile', authenticate, async (req, res) => {
-    try {
-      const user = await User.findById(req.user.id).select('-password');
-      
-      res.status(200).json({
-        status: 'success',
-        data: {
-          user
-        }
-      });
-    } catch (err) {
-      console.error('Erro ao buscar perfil:', err);
-      res.status(500).json({
-        status: 'error',
-        message: 'Erro ao buscar dados do usuário'
-      });
-    }
-  });
-  
-  app.put('/api/v1/profile', authenticate, [
-    body('email').optional().isEmail(),
-    body('name').optional().trim().escape(),
-    body('phone').optional().trim().escape()
-  ], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-  
-    try {
-      const updates = req.body;
-      const user = await User.findByIdAndUpdate(
-        req.user.id,
-        updates,
-        { new: true, runValidators: true }
-      ).select('-password');
-  
-      res.status(200).json({
-        status: 'success',
-        data: {
-          user
-        }
-      });
-    } catch (err) {
-      console.error('Erro ao atualizar perfil:', err);
-      res.status(500).json({
-        status: 'error',
-        message: 'Erro ao atualizar perfil'
-      });
-    }
-  });
-
 // Iniciar servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT} em modo ${process.env.NODE_ENV || 'development'}`);
+const PORTA = process.env.PORTA || 3000;
+app.listen(PORTA, () => {
+  console.log(`Servidor rodando na porta ${PORTA} em modo ${process.env.NODE_ENV || 'desenvolvimento'}`);
 });

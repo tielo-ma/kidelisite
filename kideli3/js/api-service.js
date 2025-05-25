@@ -1,4 +1,3 @@
-// frontend/js/api-service.js
 const API_BASE_URL = process.env.API_URL || 'http://localhost:3000/api/v1';
 
 // Cache para requisições em andamento
@@ -54,7 +53,6 @@ export const ApiService = {
       console.error('Logout error:', error);
     } finally {
       this.clearTokens();
-      // Limpar qualquer fila de refresh
       tokenRefreshQueue.clear(); 
     }
   },
@@ -64,7 +62,7 @@ export const ApiService = {
    * @returns {Promise<object>}
    */
   async getUserProfile() {
-    return this.authenticatedRequest(`${API_BASE_URL}/profile`, 'GET');
+    return this.authenticatedRequest(`${API_BASE_URL}/me`, 'GET');
   },
 
   /**
@@ -126,23 +124,50 @@ export const ApiService = {
   },
 
   /**
-   * Cria preferência de pagamento no Mercado Pago
+   * Cria um pedido de pagamento no PagBank
    * @param {Array<object>} items 
-   * @returns {Promise<{id: string, init_point: string}>}
+   * @param {string} paymentMethod 
+   * @param {object|null} cardData 
+   * @returns {Promise<{id: string, url_pagamento: string}>}
    */
-  async createPaymentPreference(items) {
+  async createPagBankPayment(items, paymentMethod, cardData = null) {
+    try {
+      const response = await this.authenticatedRequest(
+        `${API_BASE_URL}/pagamentos/criar-pedido`,
+        'POST',
+        { 
+          itens: items,
+          metodoPagamento: paymentMethod,
+          cartao: cardData
+        }
+      );
+
+      if (response.url_pagamento) {
+        // Armazena o ID do pedido localmente
+        localStorage.setItem('last_payment_id', response.id);
+        return response;
+      }
+
+      throw new Error('URL de pagamento não recebida');
+    } catch (error) {
+      console.error('Erro ao criar pagamento:', error);
+      throw new Error('Falha ao processar pagamento. Tente novamente.');
+    }
+  },
+
+  /**
+   * Verifica status de pagamento
+   * @param {string} paymentId 
+   * @returns {Promise<{status: string}>}
+   */
+  async checkPaymentStatus(paymentId) {
     return this.authenticatedRequest(
-      `${API_BASE_URL}/payments/create-preference`,
-      'POST',
-      { items }
+      `${API_BASE_URL}/pagamentos/status/${paymentId}`,
+      'GET'
     );
   },
 
   // ========== MÉTODOS AUXILIARES ========== //
-
-  /**
-   * Realiza requisições autenticadas com tratamento automático de token expirado
-   */
   async authenticatedRequest(url, method, body = null) {
     let accessToken = sessionStorage.getItem('access_token');
     let attempt = 0;
@@ -158,17 +183,12 @@ export const ApiService = {
           },
         };
 
-        if (body) {
-          options.body = JSON.stringify(body);
-        }
+        if (body) options.body = JSON.stringify(body);
 
         const response = await this._fetchWithTimeout(url, options);
 
-        if (response.ok) {
-          return response.json();
-        }
+        if (response.ok) return response.json();
 
-        // Tratamento específico para token expirado
         if (response.status === 401 && attempt === 0) {
           const errorData = await response.json();
           if (errorData.code === 'TOKEN_EXPIRED') {
@@ -177,8 +197,6 @@ export const ApiService = {
             attempt++;
             continue;
           }
-          
-          // Outros erros 401 (não autorizado)
           throw new Error(errorData.message || 'Acesso não autorizado');
         }
 
@@ -194,48 +212,25 @@ export const ApiService = {
     }
   },
 
-  /**
-   * Armazena os tokens de acesso e refresh
-   * @param {{access: string, refresh: string}} tokens 
-   */
   storeTokens(tokens) {
-    if (tokens?.access) {
-      sessionStorage.setItem('access_token', tokens.access);
-    }
-    if (tokens?.refresh) {
-      localStorage.setItem('refresh_token', tokens.refresh);
-    }
+    if (tokens?.access) sessionStorage.setItem('access_token', tokens.access);
+    if (tokens?.refresh) localStorage.setItem('refresh_token', tokens.refresh);
   },
 
-  /**
-   * Remove os tokens armazenados
-   */
   clearTokens() {
     sessionStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
   },
 
-  /**
-   * Verifica se o usuário está autenticado
-   * @returns {boolean}
-   */
   isAuthenticated() {
     return !!sessionStorage.getItem('access_token');
   },
 
   // ========== MÉTODOS PRIVADOS ========== //
-
-  /**
-   * Realiza refresh do token com sistema de fila para evitar chamadas duplicadas
-   * @private
-   */
   async _queueTokenRefresh() {
     const refreshToken = localStorage.getItem('refresh_token');
-    if (!refreshToken) {
-      throw new Error('Sessão expirada');
-    }
+    if (!refreshToken) throw new Error('Sessão expirada');
 
-    // Verifica se já existe uma requisição de refresh em andamento
     if (tokenRefreshQueue.has(refreshToken)) {
       return tokenRefreshQueue.get(refreshToken);
     }
@@ -252,16 +247,10 @@ export const ApiService = {
     }
   },
 
-  /**
-   * Executa a chamada para renovar o token
-   * @private
-   */
   async _doRefreshToken(refreshToken) {
     const response = await this._fetchWithTimeout(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${refreshToken}`,
-      },
+      headers: { 'Authorization': `Bearer ${refreshToken}` },
     });
 
     if (!response.ok) {
@@ -273,10 +262,6 @@ export const ApiService = {
     return response.json();
   },
 
-  /**
-   * Fetch com timeout e tratamento de erros
-   * @private
-   */
   async _fetchWithTimeout(resource, options = {}, timeout = 8000) {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);

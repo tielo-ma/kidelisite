@@ -315,7 +315,7 @@ button {
 .auth-modal {
     display: none;
     position: fixed;
-    z-index: 1100; /* maior que o do carrinho */
+    z-index: 1100;
     left: 0;
     top: 0;
     width: 100%;

@@ -952,6 +952,25 @@ class ProfileModal {
     }
   }
 
+  getShippingAddress() {
+    if (!this.currentUser) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const requiredFields = ['street', 'number', 'neighborhood', 'city', 'state'];
+    const missingFields = requiredFields.filter(field => !this.currentUser.address?.[field]);
+
+    if (missingFields.length > 0) {
+      throw new Error(`Endereço incompleto. Faltam: ${missingFields.join(', ')}`);
+    }
+
+    return {
+      ...this.currentUser.address,
+      recipient: this.currentUser.name,
+      phone: this.currentUser.phone
+    };
+  }
+
   toggleEditMode() {
     if (!this.state.isEditing) {
       // Entering edit mode

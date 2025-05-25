@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Verifica se o Auth está disponível
-
     if (!window.profileModal) {
         window.profileModal = new ProfileModal();
     }
@@ -30,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Auth system not available');
         }
     });
-
 
     // ========== CONFIGURAÇÕES GERAIS ==========
     const config = {
@@ -64,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         applyCouponBtn: document.getElementById('applyCoupon'),
         deliveryOptions: document.querySelectorAll('input[name="deliveryOption"]'),
         paymentMethods: document.querySelectorAll('input[name="paymentMethod"]'),
-        checkoutBtn: document.querySelector('.checkout-btn'), // Corrigido para classe
+        checkoutBtn: document.querySelector('.checkout-btn'),
         cardForm: document.getElementById('cardForm'),
         deliveryDetails: document.getElementById('deliveryDetails'),
         pickupDetails: document.getElementById('pickupDetails'),
@@ -76,20 +74,161 @@ document.addEventListener('DOMContentLoaded', function() {
         deliveryDate: document.getElementById('deliveryDate'),
         pickupDate: document.getElementById('pickupDate'),
         forgotPasswordLink: document.getElementById('forgotPasswordLink'),
-    loginEmailInput: document.querySelector('#loginForm input[type="email"]')
+        loginEmailInput: document.querySelector('#loginForm input[type="email"]'),
+        recoveryModal: document.getElementById('recoveryModal'),
+        recoveryClose: document.getElementById('recoveryClose'),
+        recoveryForm: document.getElementById('recoveryForm'),
+        recoveryEmail: document.getElementById('recoveryEmail'),
+        recoveryMessage: document.getElementById('recoveryMessage'),
+        authModal: document.getElementById('authModal')
     };
 
-    // ========== ESTADO DO CARRINHO ==========
-    const cartState = {
-        items: JSON.parse(localStorage.getItem('kideliCart')) || [],
-        appliedCoupon: null,
-        get count() {
-            return this.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    // ========== MODAL DE RECUPERAÇÃO DE SENHA ==========
+    const recoveryModal = {
+        elements: {
+            forgotPasswordLink: document.getElementById('forgotPasswordLink'),
+            recoveryModal: document.getElementById('recoveryModal'),
+            recoveryClose: document.getElementById('recoveryClose'),
+            recoveryForm: document.getElementById('recoveryForm'),
+            recoveryEmail: document.getElementById('recoveryEmail'),
+            recoveryMessage: document.getElementById('recoveryMessage'),
+            authModal: document.getElementById('authModal'),
+            loginEmailInput: document.querySelector('#loginForm input[type="email"]')
         },
-        get subtotal() {
-            return this.items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+
+        init: function() {
+            if (!this.elements.recoveryModal || !this.elements.recoveryForm) {
+                console.log('Modal de recuperação não encontrado, ignorando inicialização');
+                return;
+            }
+            
+            this.setupEvents();
+        },
+
+        setupEvents: function() {
+            if (this.elements.forgotPasswordLink) {
+                this.elements.forgotPasswordLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.open();
+                });
+            }
+
+            if (this.elements.recoveryClose) {
+                this.elements.recoveryClose.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.close();
+                });
+            }
+
+            if (this.elements.recoveryModal) {
+                this.elements.recoveryModal.addEventListener('click', (e) => {
+                    if (e.target === this.elements.recoveryModal) {
+                        this.close();
+                    }
+                });
+            }
+
+            if (this.elements.recoveryForm) {
+                this.elements.recoveryForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleSubmit();
+                });
+            }
+        },
+
+        open: function() {
+            if (this.elements.authModal) {
+                this.elements.authModal.style.display = 'none';
+            }
+            
+            if (this.elements.recoveryModal) {
+                this.elements.recoveryModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                
+                if (this.elements.loginEmailInput && this.elements.loginEmailInput.value) {
+                    this.elements.recoveryEmail.value = this.elements.loginEmailInput.value;
+                }
+                
+                setTimeout(() => {
+                    if (this.elements.recoveryEmail) this.elements.recoveryEmail.focus();
+                }, 100);
+            }
+        },
+
+        close: function() {
+            if (this.elements.recoveryModal) {
+                this.elements.recoveryModal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        },
+
+        handleSubmit: function() {
+            const email = this.elements.recoveryEmail.value.trim();
+            
+            if (!this.validateEmail(email)) {
+                this.showMessage("Por favor, insira um e-mail válido.", "error");
+                return;
+            }
+            
+            this.showMessage("Um link de recuperação foi enviado para seu e-mail.", "success");
+            
+            setTimeout(() => {
+                this.elements.recoveryEmail.value = '';
+                this.close();
+                
+                if (this.elements.authModal) {
+                    this.elements.authModal.style.display = 'block';
+                }
+            }, 3000);
+        },
+
+        validateEmail: function(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        },
+
+        showMessage: function(text, type = 'info') {
+            if (!this.elements.recoveryMessage) {
+                console.error('Elemento recoveryMessage não encontrado');
+                return;
+            }
+            
+            this.elements.recoveryMessage.style.cssText = `
+                display: block;
+                margin-top: 15px;
+                padding: 12px;
+                border-radius: 5px;
+                text-align: center;
+            `;
+            
+            this.elements.recoveryMessage.textContent = text;
+            
+            switch(type.toLowerCase()) {
+                case 'success':
+                    this.elements.recoveryMessage.style.backgroundColor = "#d4edda";
+                    this.elements.recoveryMessage.style.color = "#155724";
+                    this.elements.recoveryMessage.style.border = "1px solid #c3e6cb";
+                    break;
+                case 'error':
+                    this.elements.recoveryMessage.style.backgroundColor = "#f8d7da";
+                    this.elements.recoveryMessage.style.color = "#721c24";
+                    this.elements.recoveryMessage.style.border = "1px solid #f5c6cb";
+                    break;
+                default:
+                    this.elements.recoveryMessage.style.backgroundColor = "#d1ecf1";
+                    this.elements.recoveryMessage.style.color = "#0c5460";
+                    this.elements.recoveryMessage.style.border = "1px solid #bee5eb";
+            }
+            
+            if (type.toLowerCase() !== 'error') {
+                setTimeout(() => {
+                    this.elements.recoveryMessage.style.display = "none";
+                }, 5000);
+            }
         }
     };
+
+    recoveryModal.init();
 
     // ========== FUNÇÕES UTILITÁRIAS ==========
     const utils = {
@@ -116,26 +255,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     toast.remove();
                 }, 300);
             }, 5000);
+        }
+    };
+
+    // ========== ESTADO DO CARRINHO ==========
+    const cartState = {
+        items: JSON.parse(localStorage.getItem('kideliCart')) || [],
+        appliedCoupon: null,
+        get count() {
+            return this.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
         },
-        handleForgotPassword: function(email) {
-            // Aqui você pode implementar a lógica de recuperação de senha
-            // Por enquanto, vamos apenas mostrar um feedback
-            console.log('Solicitação de recuperação de senha para:', email);
-            
-            // Simulando uma requisição assíncrona
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    // Em uma implementação real, você faria uma requisição AJAX para seu backend
-                    resolve(true);
-                }, 1000);
-            });
+        get subtotal() {
+            return this.items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
         }
     };
 
     // ========== FUNÇÕES DO CARRINHO ==========
     const cart = {
         init: function() {
-            // Verifica se há itens no carrinho com chave antiga
             const oldCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
             if (oldCartItems.length > 0) {
                 localStorage.setItem('kideliCart', JSON.stringify(oldCartItems));
@@ -154,7 +291,6 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         setupEventListeners: function() {
-            // Menu mobile
             if (elements.menuToggle) {
                 elements.menuToggle.addEventListener('click', () => {
                     elements.menu.classList.toggle('active');
@@ -162,12 +298,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            // Botões de adicionar ao carrinho
             elements.addToCartButtons.forEach(button => {
                 button.addEventListener('click', () => this.handleAddToCart(button));
             });
 
-            // Botões do carrinho
             elements.headerCartBtn?.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.openModal();
@@ -176,7 +310,6 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.floatingCartBtn?.addEventListener('click', () => this.openModal());
             elements.cartModalClose?.addEventListener('click', () => this.closeModal());
 
-            // Cupons e pagamento
             elements.applyCouponBtn?.addEventListener('click', () => this.applyCoupon());
             elements.deliveryOptions?.forEach(radio => {
                 radio.addEventListener('change', () => this.updateDeliveryOption());
@@ -186,7 +319,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             elements.checkoutBtn?.addEventListener('click', () => this.startCheckout());
 
-            // Fechar modal ao clicar fora
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.cart-modal-content') && 
                     !e.target.closest('.cart-btn') && 
@@ -196,37 +328,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             window.addEventListener('beforeunload', () => {
                 this.saveCart();
-            });
-
-            elements.forgotPasswordLink?.addEventListener('click', async (e) => {
-                e.preventDefault();
-                
-                if (!elements.loginEmailInput) {
-                    console.error('Elemento loginEmailInput não encontrado!');
-                    return;
-                }
-                const email = elements.loginEmailInput.value;
-                
-                if (!email) {
-                    utils.showToast('Por favor, informe seu e-mail cadastrado', 'error');
-                    return;
-                }
-                
-                const loadingToast = utils.showToast('Processando sua solicitação...', 'info');
-                
-                try {
-                    const success = await utils.handleForgotPassword(email);
-                    
-                    if (success) {
-                        utils.showToast('Um e-mail com instruções foi enviado para seu endereço cadastrado');
-                        document.getElementById('authModal').style.display = 'none';
-                    } else {
-                        utils.showToast('Ocorreu um erro. Por favor, tente novamente mais tarde.', 'error');
-                    }
-                } catch (error) {
-                    console.error('Erro ao processar recuperação de senha:', error);
-                    utils.showToast('Erro ao processar sua solicitação', 'error');
-                }
             });
         },
 
@@ -259,7 +360,6 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             if (this.addItem(product)) {
-                // Feedback visual
                 button.textContent = '✓ Adicionado';
                 button.disabled = true;
                 
@@ -268,7 +368,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     button.disabled = false;
                 }, 1500);
                 
-                // Efeito no card
                 productCard.classList.add('added-to-cart');
                 setTimeout(() => {
                     productCard.classList.remove('added-to-cart');
@@ -282,10 +381,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (savedCart) {
                     const parsedCart = JSON.parse(savedCart);
                     
-                    // Verifica se é um array válido
                     if (Array.isArray(parsedCart)) {
                         cartState.items = parsedCart;
-                        console.log('Carrinho carregado:', cartState.items); // Debug
+                        console.log('Carrinho carregado:', cartState.items);
                     } else {
                         console.warn('Dados inválidos no carrinho, limpando...');
                         this.clearCart();
@@ -299,21 +397,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         saveCart: function() {
             try {
-                // Converte para JSON e depois analisa de volta para garantir que é válido
                 const cartData = JSON.stringify(cartState.items);
-                JSON.parse(cartData); // Testa se o JSON é válido
+                JSON.parse(cartData);
                 
                 localStorage.setItem('kideliCart', cartData);
-                console.log('Carrinho salvo com sucesso:', cartState.items); // Debug
+                console.log('Carrinho salvo com sucesso:', cartState.items);
             } catch (e) {
                 console.error('Erro ao salvar carrinho:', e);
-                // Em caso de erro, tenta salvar um array vazio
                 localStorage.setItem('kideliCart', JSON.stringify([]));
             }
         },
 
         addItem: function(product) {
-            // Garante que o ID é único e consistente
             const productId = product.id || `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
             const size = product.size || 'medio';
             
@@ -321,7 +416,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 item.id === productId && item.size === size
             );
             
-            // Define uma imagem padrão se não houver
             const productWithImage = {
                 ...product,
                 id: productId,
@@ -353,13 +447,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 itemElement.classList.add('removing');
                 setTimeout(() => {
                     cartState.items.splice(itemIndex, 1);
-                    this.saveCart(); // Garante o salvamento
+                    this.saveCart();
                     this.updateUI();
                     if (cartState.items.length === 0) this.closeModal();
                 }, 300);
             } else {
                 cartState.items.splice(itemIndex, 1);
-                this.saveCart(); // Garante o salvamento
+                this.saveCart();
                 this.updateUI();
             }
         },
@@ -375,9 +469,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.updateUI();
         },
 
-        
         openModal: function() {
-            if (!elements.cartModal) return; // Verificação adicionada
+            if (!elements.cartModal) return;
             elements.cartModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
             this.renderItems();
@@ -386,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         
         closeModal: function() {
-            if (!elements.cartModal) return; // Verificação adicionada
+            if (!elements.cartModal) return;
             elements.cartModal.style.display = 'none';
             document.body.style.overflow = '';
         },
@@ -406,7 +499,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 itemElement.className = 'cart-item';
                 itemElement.setAttribute('data-id', item.id);
                 
-                // Use a imagem do item ou uma imagem padrão
                 const itemImage = item.image || './assets/image/red2.png';
                 
                 itemElement.innerHTML = `
@@ -429,7 +521,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.cartItemsContainer.appendChild(itemElement);
             });
 
-            // Adiciona eventos aos novos elementos
             document.querySelectorAll('.quantity-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const change = btn.classList.contains('increase') ? 1 : -1;
@@ -447,7 +538,6 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         updateSummary: function() {
-            // Verifica se os elementos críticos existem
             if (!elements.cartSubtotal || !elements.cartTotal) {
                 console.error('Elementos do carrinho não encontrados!');
                 return;
@@ -465,13 +555,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const total = cartState.subtotal - discount - paymentDiscount + delivery;
             
-            // Atualiza a exibição com verificações
             if (elements.cartSubtotal) elements.cartSubtotal.textContent = utils.formatPrice(cartState.subtotal);
             if (elements.cartDiscount) elements.cartDiscount.textContent = utils.formatPrice(discount);
             if (elements.deliveryFee) elements.deliveryFee.textContent = utils.formatPrice(delivery);
             if (elements.cartTotal) elements.cartTotal.textContent = utils.formatPrice(total);
             
-            // Atualiza parcelamento se for cartão de crédito
             if (paymentMethod === 'creditCard' && elements.cardInstallments) {
                 this.updateInstallments(total);
             }
@@ -498,9 +586,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateUI: function() {
             if (!elements.cartItemsContainer || !elements.emptyCartMessage) {
-        console.error('Elementos do carrinho não encontrados!');
-        return;
-    }
+                console.error('Elementos do carrinho não encontrados!');
+                return;
+            }
             this.renderItems();
             this.updateCounters();
             
@@ -549,28 +637,60 @@ document.addEventListener('DOMContentLoaded', function() {
             this.updateSummary();
         },
 
-        startCheckout: function() {
+        startCheckout: async function() {
+            // Verifica se há itens no carrinho
             if (cartState.items.length === 0) {
                 alert('Seu carrinho está vazio!');
                 return;
             }
 
-            const orderData = {
-                items: cartState.items,
-                subtotal: parseFloat(elements.cartSubtotal.textContent.replace('R$', '').replace(',', '.')),
-                discount: parseFloat(elements.cartDiscount.textContent.replace('R$', '').replace(',', '.')),
-                delivery: parseFloat(elements.deliveryFee.textContent.replace('R$', '').replace(',', '.')),
-                total: parseFloat(elements.cartTotal.textContent.replace('R$', '').replace(',', '.')),
-                paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
-                deliveryOption: document.querySelector('input[name="deliveryOption"]:checked').value
-            };
+            try {
+                // Verificação do endereço (integração com ProfileModal)
+                let endereco;
+                if (window.profileModal) {
+                    endereco = window.profileModal.getShippingAddress();
+                } else {
+                    throw new Error('Perfil não carregado');
+                }
 
-            console.log('Iniciando checkout:', orderData);
-            // Implemente aqui a integração com o gateway de pagamento
+                // Montagem dos dados do pedido
+                const pedido = {
+                    itens: cartState.items,
+                    endereco: endereco,
+                    pagamento: document.querySelector('input[name="paymentMethod"]:checked').value,
+                    valorTotal: parseFloat(elements.cartTotal.textContent.replace('R$', '').replace(',', '.'))
+                };
+
+                // DEBUG - Remova na produção
+                console.log('Dados do pedido:', pedido);
+
+                // Limpa carrinho e mostra confirmação
+                this.clearCart();
+                document.getElementById('orderConfirmation').style.display = 'block';
+
+            } catch (error) {
+                console.error('Erro no checkout:', error);
+                
+                // Tratamento especial para endereço incompleto
+                if (error.message.includes('Endereço')) {
+                    if (window.profileModal) {
+                        window.profileModal.open('addresses');
+                        window.profileModal.showNotification('Complete seu endereço para finalizar', 'error');
+                    }
+                } else {
+                    alert('Erro: ' + error.message);
+                }
+            }
+        },
+
+        clearCart: function() {
+            cartState.items = [];
+            cartState.appliedCoupon = null;
+            this.saveCart();
+            this.updateUI();
         }
     };
 
-    
-    // Inicializa o carrinho
+    // Inicialização do carrinho
     cart.init();
 });

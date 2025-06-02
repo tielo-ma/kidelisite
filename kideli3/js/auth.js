@@ -1,6 +1,8 @@
 // Sistema de Autenticação e Fidelidade
 console.log('[Auth] Inicializando sistema...');
 
+import bcrypt from 'bcryptjs';
+
 // Constantes
 const FIDELIDADE = {
   niveis: {
@@ -81,8 +83,8 @@ const Validators = {
 const UserService = {
   async getUsers() {
     try {
-      const response = await ApiService.get('/users');
-      return response.data || [];
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
+      return users;
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
       return [];
@@ -91,8 +93,8 @@ const UserService = {
   
   async getUserById(id) {
     try {
-      const response = await ApiService.get(`/users/${id}`);
-      return response.data || null;
+      const users = await this.getUsers();
+      return users.find(user => user.id === id) || null;
     } catch (error) {
       console.error(`Erro ao buscar usuário ${id}:`, error);
       return null;
@@ -101,8 +103,8 @@ const UserService = {
   
   async getUserByEmail(email) {
     try {
-      const response = await ApiService.get(`/users?email=${email}`);
-      return response.data[0] || null;
+      const users = await this.getUsers();
+      return users.find(user => user.email === email) || null;
     } catch (error) {
       console.error(`Erro ao buscar usuário por email ${email}:`, error);
       return null;
@@ -111,13 +113,21 @@ const UserService = {
   
   async saveUser(user) {
     try {
+      const users = await this.getUsers();
       if (user.id) {
-        const response = await ApiService.put(`/users/${user.id}`, user);
-        return response.data;
+        // Atualização
+        const index = users.findIndex(u => u.id === user.id);
+        if (index !== -1) {
+          users[index] = user;
+        }
       } else {
-        const response = await ApiService.post('/users', user);
-        return response.data;
+        // Novo usuário
+        user.id = Date.now().toString();
+        users.push(user);
       }
+      
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      return user;
     } catch (error) {
       console.error('Erro ao salvar usuário:', error);
       throw error;
@@ -135,24 +145,12 @@ const UserService = {
 
 // Autenticação
 const AuthService = {
-  async login(credentials) {
+  async login({ user }) {
     try {
-      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
-      const user = users.find(u => u.email === credentials.email);
-      
-      if (!user) {
-        throw new Error('Usuário não encontrado');
-      }
-      
-      if (user.password !== credentials.password) {
-        throw new Error('Senha incorreta');
-      }
-      
       sessionStorage.setItem(STORAGE_KEYS.TOKEN, user.id);
       sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
       this.updateAuthUI();
       return true;
-      
     } catch (error) {
       console.error('Login error:', error);
       return false;
@@ -209,13 +207,17 @@ const FormHandlers = {
       if (!email || !password) throw new Error('Preencha todos os campos');
       if (!Validators.email(email)) throw new Error('Email inválido');
       
-      const success = await AuthService.login({ email, password });
+      const user = await UserService.getUserByEmail(email);
+      if (!user) throw new Error('Usuário não encontrado');
+      
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) throw new Error('Senha incorreta');
+      
+      const success = await AuthService.login({ user });
       
       if (success) {
         UI.showNotification('Login realizado!', 'success');
         ModalService.closeAuthModal();
-      } else {
-        throw new Error('Credenciais inválidas');
       }
     } catch (error) {
       UI.showNotification(error.message, 'error');
@@ -270,10 +272,20 @@ const FormHandlers = {
         throw new Error('Email já cadastrado');
       }
       
+      // Hash da senha antes de salvar
+      const hashedPassword = await bcrypt.hash(formData.password, 10);
+      formData.password = hashedPassword;
+      
+      // Primeiro usuário vira admin
+      const users = await UserService.getUsers();
+      if (users.length === 0) {
+        formData.isAdmin = true;
+      }
+      
       const newUser = await UserService.saveUser(formData);
       
       if (newUser) {
-        await AuthService.login({ email: formData.email, password: formData.password });
+        await AuthService.login({ user: newUser });
         UI.showNotification('Cadastro realizado!', 'success');
         ModalService.switchTab('login');
         form.reset();

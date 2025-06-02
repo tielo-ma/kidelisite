@@ -26,7 +26,7 @@ export const ApiService = {
       }
 
       const data = await response.json();
-      this.storeTokens(data.tokens);
+      this._storeTokens(data.tokens);
       return data;
     } catch (error) {
       console.error('Login error:', error);
@@ -51,15 +51,15 @@ export const ApiService = {
       }
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      this.clearTokens();
-      tokenRefreshQueue.clear(); 
-    }
+      } finally {
+        this._clearTokens();
+        tokenRefreshQueue.clear();
+      }
   },
 
   /**
    * Obtém o perfil do usuário
-   * @returns {Promise<object>}
+   * @returns {Promise<{id: string, name: string, email: string, ...}>}
    */
   async getUserProfile() {
     return this.authenticatedRequest(`${API_BASE_URL}/me`, 'GET');
@@ -68,7 +68,7 @@ export const ApiService = {
   /**
    * Atualiza o perfil do usuário
    * @param {object} profileData 
-   * @returns {Promise<object>}
+   * @returns {Promise<{id: string, name: string, email: string, ...}>}
    */
   async updateProfile(profileData) {
     return this.authenticatedRequest(
@@ -84,20 +84,25 @@ export const ApiService = {
    * @returns {Promise<{message: string}>}
    */
   async requestPasswordReset(email) {
-    const response = await this._fetchWithTimeout(`${API_BASE_URL}/auth/forgot-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    });
+    try {
+      const response = await this._fetchWithTimeout(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Falha ao solicitar recuperação de senha');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Falha ao solicitar recuperação de senha');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      throw new Error('Falha ao solicitar recuperação de senha. Tente novamente.');
     }
-
-    return response.json();
   },
 
   /**
@@ -107,25 +112,30 @@ export const ApiService = {
    * @returns {Promise<{message: string}>}
    */
   async resetPassword(token, newPassword) {
-    const response = await this._fetchWithTimeout(`${API_BASE_URL}/auth/reset-password/${token}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ password: newPassword }),
-    });
+    try {
+      const response = await this._fetchWithTimeout(`${API_BASE_URL}/auth/reset-password/${token}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: newPassword }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Falha ao redefinir senha');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Falha ao redefinir senha');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Password reset error:', error);
+      throw new Error('Falha ao redefinir senha. Tente novamente.');
     }
-
-    return response.json();
   },
 
   /**
    * Cria um pedido de pagamento no PagBank
-   * @param {Array<object>} items 
+   * @param {Array<{id: string, nome: string, quantidade: number, valor: number}>} items 
    * @param {string} paymentMethod 
    * @param {object|null} cardData 
    * @returns {Promise<{id: string, url_pagamento: string}>}
@@ -143,7 +153,6 @@ export const ApiService = {
       );
 
       if (response.url_pagamento) {
-        // Armazena o ID do pedido localmente
         localStorage.setItem('last_payment_id', response.id);
         return response;
       }
@@ -158,7 +167,7 @@ export const ApiService = {
   /**
    * Verifica status de pagamento
    * @param {string} paymentId 
-   * @returns {Promise<{status: string}>}
+   * @returns {Promise<{status: string, data: string}>}
    */
   async checkPaymentStatus(paymentId) {
     return this.authenticatedRequest(
@@ -167,7 +176,119 @@ export const ApiService = {
     );
   },
 
-  // ========== MÉTODOS AUXILIARES ========== //
+  // ========== MÉTODOS AUXILIARES PÚBLICOS ========== //
+  
+  /**
+   * Verifica se o usuário está autenticado
+   * @returns {boolean}
+   */
+  isAuthenticated() {
+    return !!localStorage.getItem('access_token'); // Alterado para localStorage
+  },
+
+  // ========== MÉTODOS PRIVADOS ========== //
+
+  /**
+   * @private
+   * Armazena os tokens de autenticação
+   * @param {{access: string, refresh: string}} tokens 
+   */
+  _storeTokens(tokens) {
+    if (tokens?.access) localStorage.setItem('access_token', tokens.access);
+    if (tokens?.refresh) localStorage.setItem('refresh_token', tokens.refresh);
+  },
+
+  /**
+   * @private
+   * Remove os tokens de autenticação
+   */
+  _clearTokens() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  },
+
+  /**
+   * @private
+   * Fila para refresh de token
+   * @returns {Promise<{access: string, refresh: string}>}
+   */
+  async _queueTokenRefresh() {
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) throw new Error('Sessão expirada');
+
+    if (tokenRefreshQueue.has(refreshToken)) {
+      return tokenRefreshQueue.get(refreshToken);
+    }
+
+    try {
+      const refreshPromise = this._doRefreshToken(refreshToken);
+      tokenRefreshQueue.set(refreshToken, refreshPromise);
+
+      const tokens = await refreshPromise;
+      this._storeTokens(tokens);
+      return tokens;
+    } finally {
+      tokenRefreshQueue.delete(refreshToken);
+    }
+  },
+
+  /**
+   * @private
+   * Realiza o refresh do token
+   * @param {string} refreshToken 
+   * @returns {Promise<{access: string, refresh: string}>}
+   */
+  async _doRefreshToken(refreshToken) {
+    const response = await this._fetchWithTimeout(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${refreshToken}` },
+    });
+
+    if (!response.ok) {
+      this._clearTokens();
+      const error = await response.json();
+      throw new Error(error.message || 'Falha ao renovar sessão');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * @private
+   * Fetch com timeout
+   * @param {string} resource 
+   * @param {object} options 
+   * @param {number} timeout 
+   * @returns {Promise<Response>}
+   */
+  async _fetchWithTimeout(resource, options = {}, timeout = 8000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(resource, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(id);
+      return response;
+    } catch (error) {
+      clearTimeout(id);
+      if (error.name === 'AbortError') {
+        throw new Error('Tempo de conexão esgotado. Verifique sua internet.');
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * @private
+   * Faz uma requisição autenticada com tratamento de token expirado
+   * @param {string} url 
+   * @param {string} method 
+   * @param {object|null} body 
+   * @returns {Promise<any>}
+   */
   async authenticatedRequest(url, method, body = null) {
     let accessToken = sessionStorage.getItem('access_token');
     let attempt = 0;
@@ -204,81 +325,11 @@ export const ApiService = {
         throw new Error(error.message || 'Requisição falhou');
       } catch (error) {
         if (attempt > 0) {
-          this.clearTokens();
+          this._clearTokens();
           throw new Error('Sessão expirada. Por favor, faça login novamente.');
         }
         throw error;
       }
-    }
-  },
-
-  storeTokens(tokens) {
-    if (tokens?.access) sessionStorage.setItem('access_token', tokens.access);
-    if (tokens?.refresh) localStorage.setItem('refresh_token', tokens.refresh);
-  },
-
-  clearTokens() {
-    sessionStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-  },
-
-  isAuthenticated() {
-    return !!sessionStorage.getItem('access_token');
-  },
-
-  // ========== MÉTODOS PRIVADOS ========== //
-  async _queueTokenRefresh() {
-    const refreshToken = localStorage.getItem('refresh_token');
-    if (!refreshToken) throw new Error('Sessão expirada');
-
-    if (tokenRefreshQueue.has(refreshToken)) {
-      return tokenRefreshQueue.get(refreshToken);
-    }
-
-    try {
-      const refreshPromise = this._doRefreshToken(refreshToken);
-      tokenRefreshQueue.set(refreshToken, refreshPromise);
-
-      const tokens = await refreshPromise;
-      this.storeTokens(tokens);
-      return tokens;
-    } finally {
-      tokenRefreshQueue.delete(refreshToken);
-    }
-  },
-
-  async _doRefreshToken(refreshToken) {
-    const response = await this._fetchWithTimeout(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${refreshToken}` },
-    });
-
-    if (!response.ok) {
-      this.clearTokens();
-      const error = await response.json();
-      throw new Error(error.message || 'Falha ao renovar sessão');
-    }
-
-    return response.json();
-  },
-
-  async _fetchWithTimeout(resource, options = {}, timeout = 8000) {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
-
-    try {
-      const response = await fetch(resource, {
-        ...options,
-        signal: controller.signal
-      });
-      clearTimeout(id);
-      return response;
-    } catch (error) {
-      clearTimeout(id);
-      if (error.name === 'AbortError') {
-        throw new Error('Tempo de conexão esgotado. Verifique sua internet.');
-      }
-      throw error;
     }
   }
 };

@@ -79,30 +79,49 @@ const Validators = {
 
 // Gerenciamento de Usuários
 const UserService = {
-  getUsers() {
-    const usersJSON = localStorage.getItem(STORAGE_KEYS.USERS);
-    return usersJSON ? JSON.parse(usersJSON) : [];
-  },
-  
-  getUserById(id) {
-    return this.getUsers().find(u => u.id === id);
-  },
-  
-  getUserByEmail(email) {
-    return this.getUsers().find(u => u.email === email);
-  },
-  
-  saveUser(user) {
-    const users = this.getUsers();
-    const index = users.findIndex(u => u.id === user.id);
-    
-    if (index >= 0) {
-      users[index] = user;
-    } else {
-      users.push(user);
+  async getUsers() {
+    try {
+      const response = await ApiService.get('/users');
+      return response.data || [];
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error);
+      return [];
     }
-    
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+  },
+  
+  async getUserById(id) {
+    try {
+      const response = await ApiService.get(`/users/${id}`);
+      return response.data || null;
+    } catch (error) {
+      console.error(`Erro ao buscar usuário ${id}:`, error);
+      return null;
+    }
+  },
+  
+  async getUserByEmail(email) {
+    try {
+      const response = await ApiService.get(`/users?email=${email}`);
+      return response.data[0] || null;
+    } catch (error) {
+      console.error(`Erro ao buscar usuário por email ${email}:`, error);
+      return null;
+    }
+  },
+  
+  async saveUser(user) {
+    try {
+      if (user.id) {
+        const response = await ApiService.put(`/users/${user.id}`, user);
+        return response.data;
+      } else {
+        const response = await ApiService.post('/users', user);
+        return response.data;
+      }
+    } catch (error) {
+      console.error('Erro ao salvar usuário:', error);
+      throw error;
+    }
   },
   
   calculateLevel(points) {
@@ -116,15 +135,27 @@ const UserService = {
 
 // Autenticação
 const AuthService = {
-  login(user) {
-    sessionStorage.setItem(STORAGE_KEYS.TOKEN, user.id);
-    sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-    this.updateAuthUI();
-    
-    if (window.profileModal) {
-      window.profileModal.open();
-    } else {
-      window.profileModal = new ProfileModal();
+  async login(credentials) {
+    try {
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
+      const user = users.find(u => u.email === credentials.email);
+      
+      if (!user) {
+        throw new Error('Usuário não encontrado');
+      }
+      
+      if (user.password !== credentials.password) {
+        throw new Error('Senha incorreta');
+      }
+      
+      sessionStorage.setItem(STORAGE_KEYS.TOKEN, user.id);
+      sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+      this.updateAuthUI();
+      return true;
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
     }
   },
   
@@ -178,14 +209,14 @@ const FormHandlers = {
       if (!email || !password) throw new Error('Preencha todos os campos');
       if (!Validators.email(email)) throw new Error('Email inválido');
       
-      const user = UserService.getUserByEmail(email);
-      if (!user) throw new Error('Email não cadastrado');
-      if (user.password !== password) throw new Error('Senha incorreta');
+      const success = await AuthService.login({ email, password });
       
-      AuthService.login(user);
-      UI.showNotification('Login realizado!', 'success');
-      ModalService.closeAuthModal();
-      
+      if (success) {
+        UI.showNotification('Login realizado!', 'success');
+        ModalService.closeAuthModal();
+      } else {
+        throw new Error('Credenciais inválidas');
+      }
     } catch (error) {
       UI.showNotification(error.message, 'error');
     }
@@ -200,16 +231,15 @@ const FormHandlers = {
     
     DOM.get('#buscarCep')?.addEventListener('click', this.handleCEP);
     
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      this.handleRegistration(form);
+      await this.handleRegistration(form);
     });
   },
   
-  handleRegistration(form) {
+  async handleRegistration(form) {
     try {
       const formData = {
-        id: Date.now().toString(),
         nome: DOM.getFormValue(form, 'input[placeholder="Nome completo*"]'),
         email: DOM.getFormValue(form, 'input[type="email"]'),
         password: DOM.getFormValue(form, 'input[type="password"]'),
@@ -222,9 +252,7 @@ const FormHandlers = {
         bairro: DOM.getFormValue(form, '#bairro'),
         referencia: DOM.getFormValue(form, 'input[placeholder="Ponto de referência"]'),
         pontos: 0,
-        nivelFidelidade: 'BRONZE',
-        historicoPedidos: [],
-        cartoes: []
+        nivelFidelidade: 'BRONZE'
       };
       
       // Validação
@@ -237,16 +265,21 @@ const FormHandlers = {
         throw new Error(`A senha deve ter pelo menos ${CONFIG.SENHA_MIN_LENGTH} caracteres`);
       }
       
-      if (UserService.getUserByEmail(formData.email)) {
+      const existingUser = await UserService.getUserByEmail(formData.email);
+      if (existingUser) {
         throw new Error('Email já cadastrado');
       }
       
-      UserService.saveUser(formData);
-      AuthService.login(formData);
-      UI.showNotification('Cadastro realizado!', 'success');
-      ModalService.switchTab('login');
-      form.reset();
+      const newUser = await UserService.saveUser(formData);
       
+      if (newUser) {
+        await AuthService.login({ email: formData.email, password: formData.password });
+        UI.showNotification('Cadastro realizado!', 'success');
+        ModalService.switchTab('login');
+        form.reset();
+      } else {
+        throw new Error('Erro ao cadastrar usuário');
+      }
     } catch (error) {
       UI.showNotification(error.message, 'error');
     }
@@ -350,32 +383,42 @@ const ModalService = {
 
 // Fidelidade
 const LoyaltyService = {
-  addPoints(userId, purchaseValue) {
-    const user = UserService.getUserById(userId);
-    if (!user) return 0;
-    
-    const pointsEarned = Math.floor(purchaseValue * FIDELIDADE.PONTOS_POR_REAL);
-    user.pontos += pointsEarned;
-    user.nivelFidelidade = UserService.calculateLevel(user.pontos);
-    UserService.saveUser(user);
-    
-    return pointsEarned;
+  async addPoints(userId, purchaseValue) {
+    try {
+      const user = await UserService.getUserById(userId);
+      if (!user) return 0;
+      
+      const pointsEarned = Math.floor(purchaseValue * FIDELIDADE.PONTOS_POR_REAL);
+      user.pontos += pointsEarned;
+      user.nivelFidelidade = UserService.calculateLevel(user.pontos);
+      
+      await UserService.saveUser(user);
+      return pointsEarned;
+    } catch (error) {
+      console.error('Erro ao adicionar pontos:', error);
+      return 0;
+    }
   },
   
-  checkBirthdayBonus(user) {
-    if (!user.dataNascimento) return false;
+  async checkBirthdayBonus(user) {
+    if (!user.dataNascimento) return { granted: false };
     
-    const today = new Date();
-    const birthDate = new Date(user.dataNascimento);
-    
-    if (today.getMonth() === birthDate.getMonth() && today.getDate() === birthDate.getDate()) {
-      const bonus = FIDELIDADE.BONUS_ANIVERSARIO;
-      user.pontos += bonus;
-      user.nivelFidelidade = UserService.calculateLevel(user.pontos);
-      UserService.saveUser(user);
-      return { granted: true, bonus };
+    try {
+      const today = new Date();
+      const birthDate = new Date(user.dataNascimento);
+      
+      if (today.getMonth() === birthDate.getMonth() && today.getDate() === birthDate.getDate()) {
+        const bonus = FIDELIDADE.BONUS_ANIVERSARIO;
+        user.pontos += bonus;
+        user.nivelFidelidade = UserService.calculateLevel(user.pontos);
+        await UserService.saveUser(user);
+        return { granted: true, bonus };
+      }
+      return { granted: false };
+    } catch (error) {
+      console.error('Erro ao verificar aniversário:', error);
+      return { granted: false };
     }
-    return { granted: false };
   }
 };
 
@@ -417,42 +460,7 @@ window.Auth = {
   getUser: AuthService.getLoggedUser,
   isLoggedIn: AuthService.isLoggedIn,
   addPoints: LoyaltyService.addPoints,
-  checkBirthdayBonus: LoyaltyService.checkBirthdayBonus,
-
-  logout: function() {
-    try {
-      sessionStorage.removeItem('auth_token');
-      sessionStorage.removeItem('auth_user');
-      localStorage.removeItem('kideliCart');
-      
-      // Atualiza a UI de auth
-      this.updateAuthUI();
-      
-      showNotification('Você foi desconectado', 'info');
-      return true;
-    } catch (error) {
-      console.error('Erro durante logout:', error);
-      showNotification('Erro ao sair da conta', 'error');
-      return false;
-    }
-  },
-  
-  updateAuthUI: function() {
-    const authButton = document.getElementById('authButton');
-    if (!authButton) return;
-    
-    if (this.isLoggedIn()) {
-      authButton.innerHTML = '<i class="fas fa-user"></i> Meu Perfil';
-      authButton.classList.add('logged-in');
-    } else {
-      authButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
-      authButton.classList.remove('logged-in');
-    }
-  },
-  
-  isLoggedIn: function() {
-    return sessionStorage.getItem('auth_token') !== null;
-  }
+  checkBirthdayBonus: LoyaltyService.checkBirthdayBonus
 };
 
 // Inicialização
